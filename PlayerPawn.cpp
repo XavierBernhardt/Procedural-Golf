@@ -145,12 +145,10 @@ void APlayerPawn::Tick(float DeltaTime)
 		}
 	}
 
-	if ((Ball->ComponentVelocity.X < 10) && (Ball->ComponentVelocity.Y < 10) && (Ball->ComponentVelocity.Z < 10) ) {
-		Ball->ComponentVelocity = stopVelocity;
-		GEngine->AddOnScreenDebugMessage(-1, 99.0f, FColor::White, FString::Printf(TEXT("AAAAA")));
-
-	}
-
+	//if ((Ball->GetPhysicsLinearVelocity().X < 1) && (Ball->GetPhysicsLinearVelocity().Y < 1) && (Ball->GetPhysicsLinearVelocity().Z < 1) ) {
+	//	GEngine->AddOnScreenDebugMessage(-1, 99.0f, FColor::White, FString::Printf(TEXT("AAAAA")));
+	//	Ball->SetPhysicsLinearVelocity(FVector(0.f, 0.f, 0.f));
+	//}
 
 
 }
