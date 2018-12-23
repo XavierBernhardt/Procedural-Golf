@@ -11,10 +11,13 @@ class PROCEDURALGOLFV2_API APlayerPawn : public APawn
 {
 	GENERATED_BODY()
 
-	///** StaticMesh used for the ball */
+	/** StaticMesh used for the ball */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Ball, meta = (AllowPrivateAccess = "true"))
 	class UStaticMeshComponent* Ball;
 
+	/** StaticMesh used for the Cyl */
+	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Ball, meta = (AllowPrivateAccess = "true"))
+	//	class UStaticMeshComponent* Cyl;
 
 	/** Spring arm for positioning the camera above the ball */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Ball, meta = (AllowPrivateAccess = "true"))
@@ -46,14 +49,27 @@ public:
 	FORCEINLINE class USpringArmComponent* GetSpringArm() const { return SpringArm; }
 	/** Returns Camera subobject **/
 	FORCEINLINE class UCameraComponent* GetCamera() const { return Camera; }
-
+	/** Returns Ball subobject **/
+	//FORCEINLINE class UStaticMeshComponent* getCyl() const { return Cyl; }
 
 	//Keyboard Functions
 	void RotateCW();
 	void RotateCCW();
+
+	void RotateCWRelease();
+	void RotateCCWRelease();
+
 	void ForceAdd();
 	void ForceRemove();
+	
+	void ForceAddRelease();
+	void ForceRemoveRelease();
+
+
+
 	void Shoot();
+
+	FRotator shootDirection;
 
 	//Tune Variables
 	UPROPERTY(EditAnywhere, Category = AVariables)
@@ -69,6 +85,12 @@ public:
 	float force;
 
 	//Non Tune Variables
-	bool canShoot;
+	bool canShoot, canSetShoot;
+
+	int rotating;
+	float incrementForce;
+
+	FTimerHandle canSetShootTimer;
+	void canSetShootMethod();
 
 };
