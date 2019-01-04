@@ -34,7 +34,7 @@ APlayerPawn::APlayerPawn()
 	canSetShoot = true;
 	rotating = 0;
 	shootDirection = FRotator(0.f,0.f,0.f);
-
+	slowMoving = false;
 
 	//Makes a static mesh for the ball
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> BallMesh(TEXT("/Game/Meshes/BallStaticMesh.BallStaticMesh"));
@@ -42,8 +42,8 @@ APlayerPawn::APlayerPawn()
 	Ball->SetStaticMesh(BallMesh.Object);
 	Ball->BodyInstance.SetCollisionProfileName(UCollisionProfile::PhysicsActor_ProfileName);
 	Ball->SetSimulatePhysics(true);
-	Ball->SetAngularDamping(1.5f);
-	Ball->SetLinearDamping(1.5f);
+	Ball->SetAngularDamping(1.0f);
+	Ball->SetLinearDamping(1.0f);
 	Ball->BodyInstance.MassScale = 3.5f;
 	Ball->BodyInstance.MaxAngularVelocity = 800.0f;
 	Ball->SetNotifyRigidBodyCollision(true);
@@ -89,7 +89,7 @@ void APlayerPawn::BeginPlay()
 
 // Called every frame
 void APlayerPawn::Tick(float DeltaTime)
-{		
+{
 	Super::Tick(DeltaTime);
 	if (canShoot) {
 		GEngine->AddOnScreenDebugMessage(77, 99.0f, FColor::White, FString::Printf(TEXT("CanShoot=True")));
@@ -121,12 +121,37 @@ void APlayerPawn::Tick(float DeltaTime)
 
 	if (GetVelocity().Equals(stopVelocity) && canSetShoot) {
 		canShoot = true;
+		slowMoving = false;
 	}
+
+	if (slowMoving) {
+		GEngine->AddOnScreenDebugMessage(200, 0.01f, FColor::Red, FString::Printf(TEXT("SlowMoving = true")));
+		Ball->SetAngularDamping(30.f);
+		Ball->SetLinearDamping(30.f);
+	}
+	else {
+		GEngine->AddOnScreenDebugMessage(200, 0.01f, FColor::Green, FString::Printf(TEXT("SlowMoving = false")));
+		Ball->SetAngularDamping(1.0f);
+		Ball->SetLinearDamping(1.0f);
+	}
+
+	if (!canShoot && canSetShoot) { //nested if here to save doing the calcs below if unneccessary
+		int slowValue = 15; //velocities below this are considered slow
+		if (	(Ball->GetPhysicsLinearVelocity().X < slowValue) && (Ball->GetPhysicsLinearVelocity().X > -slowValue)	&&
+				(Ball->GetPhysicsLinearVelocity().Y < slowValue) && (Ball->GetPhysicsLinearVelocity().Y > -slowValue)	&&
+				(Ball->GetPhysicsLinearVelocity().Z < slowValue) && (Ball->GetPhysicsLinearVelocity().Z > -slowValue)	)
+		{
+			slowMoving = true;
+		}
+	}
+	GEngine->AddOnScreenDebugMessage(201, 0.01f, FColor::Blue, FString::Printf(TEXT("Angluar/Linear Damping=%f"), Ball->GetAngularDamping()));
+
+
 	//FVector worldrotation = GetActorRotation().Vector();
 	//AddMovementInput(worldrotation, 10.f, false);
 	//Ball->AddImpulse();
 
-	if (rotating != 0){
+	if (rotating != 0) {
 		shootDirection.Yaw = shootDirection.Yaw + rotating * DeltaTime;
 		if (shootDirection.Yaw > 360) {
 			shootDirection.Yaw = 0;
@@ -145,10 +170,8 @@ void APlayerPawn::Tick(float DeltaTime)
 		}
 	}
 
-	//if ((Ball->GetPhysicsLinearVelocity().X < 1) && (Ball->GetPhysicsLinearVelocity().Y < 1) && (Ball->GetPhysicsLinearVelocity().Z < 1) ) {
-	//	GEngine->AddOnScreenDebugMessage(-1, 99.0f, FColor::White, FString::Printf(TEXT("AAAAA")));
-	//	Ball->SetPhysicsLinearVelocity(FVector(0.f, 0.f, 0.f));
-	//}
+
+
 
 
 }
@@ -239,10 +262,12 @@ void APlayerPawn::Shoot()
 		FVector impulse = GetActorRotation().Vector() + forwards;
 		//const FVector Impulse = FVector(0.f, force, 0.f);
 		Ball->AddImpulse(impulse);
-
+		slowMoving = false;
+		Ball->SetAngularDamping(1.0f);
+		Ball->SetLinearDamping(1.0f);
 		canShoot = false;
 		canSetShoot = false;
-		GetWorld()->GetTimerManager().SetTimer(canSetShootTimer, this, &APlayerPawn::canSetShootMethod, 2.0f, false, 2.0f);
+		GetWorld()->GetTimerManager().SetTimer(canSetShootTimer, this, &APlayerPawn::canSetShootMethod, 1.0f, false, 1.0f);
 	}
 }
 

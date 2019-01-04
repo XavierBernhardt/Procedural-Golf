@@ -93,4 +93,5 @@ public:
 	FTimerHandle canSetShootTimer;
 	void canSetShootMethod();
 
+	bool slowMoving;
 };
