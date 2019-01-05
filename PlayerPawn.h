@@ -13,21 +13,27 @@ class PROCEDURALGOLFV2_API APlayerPawn : public APawn
 
 	/** StaticMesh used for the ball */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Ball, meta = (AllowPrivateAccess = "true"))
-	class UStaticMeshComponent* Ball;
+		class UStaticMeshComponent* Ball;
 
 	/** StaticMesh used for the Cyl */
 	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Ball, meta = (AllowPrivateAccess = "true"))
 	//	class UStaticMeshComponent* Cyl;
 
-	/** Spring arm for positioning the camera above the ball */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Ball, meta = (AllowPrivateAccess = "true"))
-		class USpringArmComponent* SpringArm;
+	///** Spring arm for positioning the camera above the ball */
+	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Ball, meta = (AllowPrivateAccess = "true"))
+	//	class USpringArmComponent* SpringArm;
 
-	/** Camera to view the ball */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Ball, meta = (AllowPrivateAccess = "true"))
-		class UCameraComponent* Camera;
+	///** Camera to view the ball */
+	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Ball, meta = (AllowPrivateAccess = "true"))
+	//	class UCameraComponent* Camera;
 
+	/** Camera boom positioning the camera behind the character */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+		class USpringArmComponent* CameraBoom;
 
+	/** Follow camera */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+		class UCameraComponent* FollowCamera;
 public:
 	// Sets default values for this pawn's properties
 	APlayerPawn();
@@ -36,7 +42,7 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-public:	
+public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
@@ -46,9 +52,9 @@ public:
 	/** Returns Ball subobject **/
 	FORCEINLINE class UStaticMeshComponent* GetBall() const { return Ball; }
 	/** Returns SpringArm subobject **/
-	FORCEINLINE class USpringArmComponent* GetSpringArm() const { return SpringArm; }
+	//FORCEINLINE class USpringArmComponent* GetSpringArm() const { return SpringArm; }
 	/** Returns Camera subobject **/
-	FORCEINLINE class UCameraComponent* GetCamera() const { return Camera; }
+	//FORCEINLINE class UCameraComponent* GetCamera() const { return Camera; }
 	/** Returns Ball subobject **/
 	//FORCEINLINE class UStaticMeshComponent* getCyl() const { return Cyl; }
 
@@ -61,10 +67,22 @@ public:
 
 	void ForceAdd();
 	void ForceRemove();
-	
+
 	void ForceAddRelease();
 	void ForceRemoveRelease();
 
+
+	//void RotateCameraCW();
+	//void RotateCameraCCW();
+
+	//void RotateCameraCWRelease();
+	//void RotateCameraCCWRelease();
+
+	void CameraZoomIn();
+	void CameraZoomOut();
+
+	void CameraZoomInRelease();
+	void CameraZoomOutRelease();
 
 
 	void Shoot();
@@ -73,25 +91,67 @@ public:
 
 	//Tune Variables
 	UPROPERTY(EditAnywhere, Category = AVariables)
-	float defaultForce;
+		float defaultForce;
 
 	UPROPERTY(EditAnywhere, Category = AVariables)
-	float maxForce;
+		float maxForce;
 
 	UPROPERTY(EditAnywhere, Category = AVariables)
-	float minForce;
+		float minForce;
 
 	UPROPERTY(EditAnywhere, Category = AVariables)
-	float force;
+		float force;
+
+	UPROPERTY(EditAnywhere, Category = AVariables)
+		float dampingDefault;
+
+	UPROPERTY(EditAnywhere, Category = AVariables)
+		float JumpImpulse;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
+		float BaseTurnRate;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
+		float BaseLookUpRate;
 
 	//Non Tune Variables
-	bool canShoot, canSetShoot;
+	bool canShoot, canSetShoot, touchedFlag;
 
-	int rotating;
-	float incrementForce;
+	int rotating, slowValue; //velocities below this are considered slow
+	//int cameraRotating;
+	int cameraZooming;
+
+	float incrementForce, realDamping, iceDamping;
+
+	int overlappingIce;
 
 	FTimerHandle canSetShootTimer;
+	FTimerHandle flagTimer;
+
 	void canSetShootMethod();
+	void flagTimerMethod();
 
 	bool slowMoving;
-};
+
+	UFUNCTION()
+		virtual void OnOverlap(UPrimitiveComponent* HitComp, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
+
+	UFUNCTION()
+		void OnOverlapEnd(class UPrimitiveComponent* HitComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	UFUNCTION()
+		virtual void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+
+	//FVector Dimensions = FVector(300, 0, 0);
+	//FVector AxisVector = FVector(0, 0, 1);
+	//float Multiplier = 50.f;
+	//float AngleAxis = 0.f;
+
+	void TurnAtRate(float Rate);
+	void LookUpAtRate(float Rate);
+	/** Returns CameraBoom subobject **/
+	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
+	/** Returns FollowCamera subobject **/
+	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+
+}
+;

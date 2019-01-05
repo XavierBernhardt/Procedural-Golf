@@ -16,6 +16,9 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
 #include "Runtime/Engine/Classes/GameFramework/PlayerController.h"
+#include "IceActor.h"
+#include "SpringboardActor.h"
+#include "FlagActor.h"
 
 // Sets default values
 APlayerPawn::APlayerPawn()
@@ -35,6 +38,16 @@ APlayerPawn::APlayerPawn()
 	rotating = 0;
 	shootDirection = FRotator(0.f,0.f,0.f);
 	slowMoving = false;
+	dampingDefault = 1.2f;
+	realDamping = dampingDefault;
+	iceDamping = (dampingDefault / 3);
+	overlappingIce = 0;
+	JumpImpulse = 350000.0f;
+	slowValue = 20; //velocities below this are considered slow
+	touchedFlag = false;
+	//cameraRotating = 0;
+	cameraZooming = 0;
+
 
 	//Makes a static mesh for the ball
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> BallMesh(TEXT("/Game/Meshes/BallStaticMesh.BallStaticMesh"));
@@ -42,8 +55,8 @@ APlayerPawn::APlayerPawn()
 	Ball->SetStaticMesh(BallMesh.Object);
 	Ball->BodyInstance.SetCollisionProfileName(UCollisionProfile::PhysicsActor_ProfileName);
 	Ball->SetSimulatePhysics(true);
-	Ball->SetAngularDamping(1.0f);
-	Ball->SetLinearDamping(1.0f);
+	Ball->SetAngularDamping(realDamping);
+	Ball->SetLinearDamping(realDamping);
 	Ball->BodyInstance.MassScale = 3.5f;
 	Ball->BodyInstance.MaxAngularVelocity = 800.0f;
 	Ball->SetNotifyRigidBodyCollision(true);
@@ -75,7 +88,7 @@ APlayerPawn::APlayerPawn()
 	// Create a camera and attach to boom
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera0"));
 	Camera->SetupAttachment(SpringArm, USpringArmComponent::SocketName);
-	Camera->bUsePawnControlRotation = false; // We don't want the controller rotating the camera
+	Camera->bUsePawnControlRotation = true; // We don't want the controller rotating the camera
 
 }
 
@@ -84,6 +97,10 @@ void APlayerPawn::BeginPlay()
 {
 	Super::BeginPlay();
 	GEngine->AddOnScreenDebugMessage(100, 5.0f, FColor::White, TEXT("Begin"));
+
+	FindComponentByClass<USphereComponent>()->OnComponentBeginOverlap.AddDynamic(this, &APlayerPawn::OnOverlap);
+	FindComponentByClass<USphereComponent>()->OnComponentEndOverlap.AddDynamic(this, &APlayerPawn::OnOverlapEnd);
+	FindComponentByClass<USphereComponent>()->OnComponentHit.AddDynamic(this, &APlayerPawn::OnHit);
 
 }
 
@@ -119,27 +136,27 @@ void APlayerPawn::Tick(float DeltaTime)
 
 	FVector stopVelocity = FVector(0.f, 0.f, 0.f);
 
-	if (GetVelocity().Equals(stopVelocity) && canSetShoot) {
+	if (GetVelocity().Equals(stopVelocity) && canSetShoot && !touchedFlag) {
 		canShoot = true;
 		slowMoving = false;
 	}
 
 	if (slowMoving) {
 		GEngine->AddOnScreenDebugMessage(200, 0.01f, FColor::Red, FString::Printf(TEXT("SlowMoving = true")));
-		Ball->SetAngularDamping(30.f);
-		Ball->SetLinearDamping(30.f);
+		Ball->SetAngularDamping(15.f);
+		Ball->SetLinearDamping(15.f);
 	}
 	else {
 		GEngine->AddOnScreenDebugMessage(200, 0.01f, FColor::Green, FString::Printf(TEXT("SlowMoving = false")));
-		Ball->SetAngularDamping(1.0f);
-		Ball->SetLinearDamping(1.0f);
+		Ball->SetAngularDamping(realDamping);
+		Ball->SetLinearDamping(realDamping);
 	}
 
 	if (!canShoot && canSetShoot) { //nested if here to save doing the calcs below if unneccessary
-		int slowValue = 15; //velocities below this are considered slow
 		if (	(Ball->GetPhysicsLinearVelocity().X < slowValue) && (Ball->GetPhysicsLinearVelocity().X > -slowValue)	&&
 				(Ball->GetPhysicsLinearVelocity().Y < slowValue) && (Ball->GetPhysicsLinearVelocity().Y > -slowValue)	&&
-				(Ball->GetPhysicsLinearVelocity().Z < slowValue) && (Ball->GetPhysicsLinearVelocity().Z > -slowValue)	)
+				//(Ball->GetPhysicsLinearVelocity().Z < slowValue) && (Ball->GetPhysicsLinearVelocity().Z > -slowValue)	)
+				(Ball->GetPhysicsLinearVelocity().Z == 0))
 		{
 			slowMoving = true;
 		}
@@ -170,7 +187,28 @@ void APlayerPawn::Tick(float DeltaTime)
 		}
 	}
 
+	if (cameraRotating != 0) {
+		//Camera->AddLocalRotation(FRotator(0.f, cameraRotating, 0.f));
+		//Camera->AddRelativeLocation(FVector(0.f, cameraRotating, 0.f));
 
+
+
+		// rotate around player
+		FVector NewLocation = Ball->GetComponentLocation();
+
+		AngleAxis += DeltaTime * Multiplier;
+
+		if (AngleAxis >= 360.0f) AngleAxis = 0;	
+
+		FVector RotateValue = Dimensions.RotateAngleAxis(AngleAxis, AxisVector);
+		NewLocation.X += RotateValue.X;
+		NewLocation.Y += RotateValue.Y;
+		NewLocation.Z += RotateValue.Z;
+		FRotator NewRotation = FRotator(0, AngleAxis, 0);
+		FQuat QuatRotation = FQuat(NewRotation);
+		Camera->SetWorldLocationAndRotation(NewLocation, QuatRotation, false, 0, ETeleportType::None);
+
+	}
 
 
 
@@ -192,7 +230,24 @@ void APlayerPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	PlayerInputComponent->BindAction("ForceAdd", IE_Released, this, &APlayerPawn::ForceAddRelease);
 	PlayerInputComponent->BindAction("ForceRemove", IE_Released, this, &APlayerPawn::ForceRemoveRelease);
 
+
+	//PlayerInputComponent->BindAction("CameraRotateCW", IE_Pressed, this, &APlayerPawn::RotateCameraCW);
+	//PlayerInputComponent->BindAction("CameraRotateCCW", IE_Pressed, this, &APlayerPawn::RotateCameraCCW);
+
+	//PlayerInputComponent->BindAction("CameraRotateCW", IE_Released, this, &APlayerPawn::RotateCameraCWRelease);
+	//PlayerInputComponent->BindAction("CameraRotateCCW", IE_Released, this, &APlayerPawn::RotateCameraCCWRelease);
+
+	PlayerInputComponent->BindAction("CameraZoomIn", IE_Pressed, this, &APlayerPawn::CameraZoomIn);
+	PlayerInputComponent->BindAction("CameraZoomOut", IE_Pressed, this, &APlayerPawn::CameraZoomOut);
+
+	PlayerInputComponent->BindAction("CameraZoomIn", IE_Released, this, &APlayerPawn::CameraZoomInRelease);
+	PlayerInputComponent->BindAction("CameraZoomOut", IE_Released, this, &APlayerPawn::CameraZoomOutRelease);
+
 	PlayerInputComponent->BindAction("Shoot", IE_Pressed, this, &APlayerPawn::Shoot);
+
+	PlayerInputComponent->BindAxis("TurnRate", this, &APlayerPawn::TurnAtRate);
+	PlayerInputComponent->BindAxis("LookUpRate", this, &APlayerPawn::LookUpAtRate);
+
 }
 
 void APlayerPawn::RotateCW()
@@ -251,6 +306,8 @@ void APlayerPawn::ForceRemoveRelease()
 	}
 }
 
+
+
 void APlayerPawn::Shoot()
 {
 	if (canShoot) {
@@ -263,8 +320,8 @@ void APlayerPawn::Shoot()
 		//const FVector Impulse = FVector(0.f, force, 0.f);
 		Ball->AddImpulse(impulse);
 		slowMoving = false;
-		Ball->SetAngularDamping(1.0f);
-		Ball->SetLinearDamping(1.0f);
+		Ball->SetAngularDamping(realDamping);
+		Ball->SetLinearDamping(realDamping);
 		canShoot = false;
 		canSetShoot = false;
 		GetWorld()->GetTimerManager().SetTimer(canSetShootTimer, this, &APlayerPawn::canSetShootMethod, 1.0f, false, 1.0f);
@@ -273,6 +330,124 @@ void APlayerPawn::Shoot()
 
 void APlayerPawn::canSetShootMethod()
 {
+	if (!touchedFlag)
 	canSetShoot = true;
 }
+void APlayerPawn::flagTimerMethod()
+{
+	//logic for next level goes here
+	canSetShoot = true;
+	touchedFlag = false;
+}
 
+void APlayerPawn::OnOverlap(UPrimitiveComponent * HitComp, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
+{
+	if (Cast<AIceActor>(OtherActor)) {
+		//GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::White, FString::Printf(TEXT("Overlap with ice begun")));
+		overlappingIce++;
+		realDamping = iceDamping;
+		Ball->SetAngularDamping(realDamping);
+		Ball->SetLinearDamping(realDamping);
+	}
+	if (Cast<ASpringboardActor>(OtherActor)) {
+
+		if ((Ball->GetPhysicsLinearVelocity().X < slowValue) && (Ball->GetPhysicsLinearVelocity().X > -slowValue) &&
+			(Ball->GetPhysicsLinearVelocity().Y < slowValue) && (Ball->GetPhysicsLinearVelocity().Y > -slowValue)) {}
+		else{
+			GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Purple, FString::Printf(TEXT("Jumping")));
+			const FVector Impulse = FVector(0.f, 0.f, JumpImpulse);
+			Ball->AddImpulse(Impulse);
+		}
+	}
+	if (Cast<AFlagActor>(OtherActor)) {
+		if (!touchedFlag) {
+			GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Purple, FString::Printf(TEXT("Touched Flag")));
+			touchedFlag = true;
+			slowMoving = true;
+			canShoot = false;
+			GetWorld()->GetTimerManager().SetTimer(flagTimer, this, &APlayerPawn::flagTimerMethod, 2.0f, false, 2.0f);
+		}
+	}
+
+	//if (Cast<USpringboard>(OtherActor)) {
+	//	GEngine->AddOnScreenDebugMessage(30, 0.01f, FColor::White, FString::Printf(TEXT("Colliding with springboard")));
+	//}
+}
+
+void APlayerPawn::OnOverlapEnd(UPrimitiveComponent * OverlappedComp, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex)
+{
+	if (Cast<AIceActor>(OtherActor)) {
+
+		//GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Emerald, FString::Printf(TEXT("Ending overlap with ice")));
+		overlappingIce--;
+		Ball->SetAngularDamping(realDamping);
+		Ball->SetLinearDamping(realDamping);
+		if (overlappingIce < 1) {
+		//	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Purple, FString::Printf(TEXT("***Ending overlap with ALL ice")));
+			realDamping = dampingDefault;
+		}
+	}
+}
+
+void APlayerPawn::OnHit(UPrimitiveComponent * HitComp, AActor * OtherActor, UPrimitiveComponent * OtherComp, FVector NormalImpulse, const FHitResult & Hit)
+{
+	if (Cast<AIceActor>(OtherActor)) {
+		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, FString::Printf(TEXT("Hitting ice")));
+	}
+}
+
+void APlayerPawn::RotateCameraCW()
+{
+	cameraRotating = 1;
+	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, FString::Printf(TEXT("RotateCameraCW")));
+}
+
+void APlayerPawn::RotateCameraCCW()
+{
+	cameraRotating = -1;
+	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, FString::Printf(TEXT("RotateCameraCCW")));
+}
+
+void APlayerPawn::RotateCameraCWRelease()
+{
+	if (cameraRotating > 0) {
+		cameraRotating = 0;
+	}
+	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, FString::Printf(TEXT("RotateCameraCWRelease")));
+}
+
+void APlayerPawn::RotateCameraCCWRelease()
+{
+	if (cameraRotating < 0) {
+		cameraRotating = 0;
+	}
+	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, FString::Printf(TEXT("RotateCameraCCWRelease")));
+}
+
+void APlayerPawn::CameraZoomIn()
+{
+	cameraZooming = 5; 
+	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, FString::Printf(TEXT("CameraZoomIn")));
+}
+
+void APlayerPawn::CameraZoomOut()
+{
+	cameraZooming = -5;
+	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, FString::Printf(TEXT("CameraZoomOut")));
+}
+
+void APlayerPawn::CameraZoomInRelease()
+{
+	if (cameraZooming > 0) {
+		cameraZooming = 0;
+	}
+	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, FString::Printf(TEXT("CameraZoomInRelease")));
+}
+
+void APlayerPawn::CameraZoomOutRelease()
+{
+	if (cameraZooming < 0) {
+		cameraZooming = 0;
+	}
+	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, FString::Printf(TEXT("CameraZoomOutRelease")));
+}
