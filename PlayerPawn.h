@@ -19,11 +19,11 @@ class PROCEDURALGOLFV2_API APlayerPawn : public APawn
 	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Ball, meta = (AllowPrivateAccess = "true"))
 	//	class UStaticMeshComponent* Cyl;
 
-	///** Spring arm for positioning the camera above the ball */
+	//** Spring arm for positioning the camera above the ball */
 	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Ball, meta = (AllowPrivateAccess = "true"))
 	//	class USpringArmComponent* SpringArm;
 
-	///** Camera to view the ball */
+	//** Camera to view the ball */
 	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Ball, meta = (AllowPrivateAccess = "true"))
 	//	class UCameraComponent* Camera;
 
@@ -34,6 +34,7 @@ class PROCEDURALGOLFV2_API APlayerPawn : public APawn
 	/** Follow camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 		class UCameraComponent* FollowCamera;
+
 public:
 	// Sets default values for this pawn's properties
 	APlayerPawn();
@@ -108,10 +109,14 @@ public:
 	UPROPERTY(EditAnywhere, Category = AVariables)
 		float JumpImpulse;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
+	UPROPERTY(EditAnywhere, Category = Camera)
 		float BaseTurnRate;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
+
+	UPROPERTY(EditAnywhere, Category = Camera)
 		float BaseLookUpRate;
+
+	UPROPERTY(EditAnywhere, Category = Camera)
+		float BaseZoomRate;
 
 	//Non Tune Variables
 	bool canShoot, canSetShoot, touchedFlag;
@@ -148,6 +153,17 @@ public:
 
 	void TurnAtRate(float Rate);
 	void LookUpAtRate(float Rate);
+	void ZoomInRate(float Rate);
+
+	bool LeftClickPressed;
+	bool RightClickPressed;
+
+	void LeftClick();
+	void LeftRelease();
+
+	void RightClick();
+	void RightRelease();
+
 	/** Returns CameraBoom subobject **/
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	/** Returns FollowCamera subobject **/

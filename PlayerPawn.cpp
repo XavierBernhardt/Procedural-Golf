@@ -33,8 +33,7 @@ APlayerPawn::APlayerPawn()
 	//force = defaultForce;
 
 	//Not Tuned
-	canShoot = true;
-	canSetShoot = true;
+	canShoot = false;
 	rotating = 0;
 	shootDirection = FRotator(0.f,0.f,0.f);
 	slowMoving = false;
@@ -47,8 +46,9 @@ APlayerPawn::APlayerPawn()
 	touchedFlag = false;
 	//cameraRotating = 0;
 	cameraZooming = 0;
-
-
+	BaseZoomRate = 500.f;
+	canSetShoot = false;
+	GetWorld()->GetTimerManager().SetTimer(canSetShootTimer, this, &APlayerPawn::canSetShootMethod, 1.0f, false, 1.0f);
 	//Makes a static mesh for the ball
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> BallMesh(TEXT("/Game/Meshes/BallStaticMesh.BallStaticMesh"));
 	Ball = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Ball0"));
@@ -75,20 +75,36 @@ APlayerPawn::APlayerPawn()
 	//Cyl->AttachTo(Ball);
 
 
-	// Create a camera boom attached to the root (ball)
-	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm0"));
-	SpringArm->SetupAttachment(RootComponent);
-	SpringArm->bDoCollisionTest = false;
-	SpringArm->bAbsoluteRotation = true; // Rotation of the ball should not affect rotation of boom
-	SpringArm->RelativeRotation = FRotator(-45.f, 0.f, 0.f);
-	SpringArm->TargetArmLength = 1200.f;
-	SpringArm->bEnableCameraLag = false;
-	SpringArm->CameraLagSpeed = 3.f;
+	//// Create a camera boom attached to the root (ball)
+	//SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm0"));
+	//SpringArm->SetupAttachment(RootComponent);
+	//SpringArm->bDoCollisionTest = false;
+	//SpringArm->RelativeRotation = FRotator(-45.f, 0.f, 0.f);
+	//SpringArm->TargetArmLength = 1200.f;
+	//SpringArm->bEnableCameraLag = false;
+	//SpringArm->CameraLagSpeed = 3.f;
 
-	// Create a camera and attach to boom
-	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera0"));
-	Camera->SetupAttachment(SpringArm, USpringArmComponent::SocketName);
-	Camera->bUsePawnControlRotation = true; // We don't want the controller rotating the camera
+	//// Create a camera and attach to boom
+	//Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera0"));
+	//Camera->SetupAttachment(SpringArm, USpringArmComponent::SocketName);
+	//Camera->bUsePawnControlRotation = true; // We don't want the controller rotating the camera
+
+	BaseTurnRate = 45.f;
+	BaseLookUpRate = 45.f;
+		// Create a camera boom (pulls in towards the player if there is a collision)
+	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
+	CameraBoom->SetupAttachment(RootComponent);
+//	CameraBoom->bAbsoluteRotation = true; // Rotation of the ball should not affect rotation of boom
+	CameraBoom->RelativeRotation = FRotator(-45.f, 0.f, 0.f);
+	CameraBoom->TargetArmLength = 1200.f; // The camera follows at this distance behind the character	
+	CameraBoom->bUsePawnControlRotation = true; // Rotate the arm based on the controller
+	CameraBoom->bEnableCameraLag = false;
+
+
+	// Create a follow camera
+	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
+	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
+	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
 }
 
@@ -125,14 +141,15 @@ void APlayerPawn::Tick(float DeltaTime)
 	FVector forwards = shootDirection.Vector()*lineLonger;
 
 	if (canShoot)
-		DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation() + forwards, FColor(0, 255, 0), false, 0.01f, 0, 12.333);
+		DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation() + forwards, FColor(45, 65, 115), false, 0.01f, 0, 12.333);
 	else
-		DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation() + forwards, FColor(255, 0, 0), false, 0.01f, 0, 12.333);
+		//DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation() + forwards, FColor(255, 0, 0), false, 0.01f, 0, 12.333);
 
 
 	GEngine->AddOnScreenDebugMessage(70, 99.0f, FColor::White, FString::Printf(TEXT("Velocity=%s"), *(GetVelocity().ToString())));
 	GEngine->AddOnScreenDebugMessage(71, 99.0f, FColor::White, FString::Printf(TEXT("Rotation=%s"), *(GetActorRotation().ToString())));
 	GEngine->AddOnScreenDebugMessage(72, 99.0f, FColor::White, FString::Printf(TEXT("Shoot Direction=%s"), *(shootDirection.ToString())));
+	GEngine->AddOnScreenDebugMessage(72, 99.0f, FColor::White, FString::Printf(TEXT("Zooming=%i"), cameraZooming));
 
 	FVector stopVelocity = FVector(0.f, 0.f, 0.f);
 
@@ -187,28 +204,39 @@ void APlayerPawn::Tick(float DeltaTime)
 		}
 	}
 
-	if (cameraRotating != 0) {
-		//Camera->AddLocalRotation(FRotator(0.f, cameraRotating, 0.f));
-		//Camera->AddRelativeLocation(FVector(0.f, cameraRotating, 0.f));
 
+	if (cameraZooming != 0) {
+		CameraBoom->TargetArmLength = CameraBoom->TargetArmLength + (cameraZooming * DeltaTime); // The camera follows at this distance behind the character	
 
-
-		// rotate around player
-		FVector NewLocation = Ball->GetComponentLocation();
-
-		AngleAxis += DeltaTime * Multiplier;
-
-		if (AngleAxis >= 360.0f) AngleAxis = 0;	
-
-		FVector RotateValue = Dimensions.RotateAngleAxis(AngleAxis, AxisVector);
-		NewLocation.X += RotateValue.X;
-		NewLocation.Y += RotateValue.Y;
-		NewLocation.Z += RotateValue.Z;
-		FRotator NewRotation = FRotator(0, AngleAxis, 0);
-		FQuat QuatRotation = FQuat(NewRotation);
-		Camera->SetWorldLocationAndRotation(NewLocation, QuatRotation, false, 0, ETeleportType::None);
-
+		if (CameraBoom->TargetArmLength > 2000) {
+			CameraBoom->TargetArmLength = 2000;
+		}
+		if (CameraBoom->TargetArmLength < 300) {
+			CameraBoom->TargetArmLength = 300;
+		}
 	}
+	//if (cameraRotating != 0) {
+	//	//Camera->AddLocalRotation(FRotator(0.f, cameraRotating, 0.f));
+	//	//Camera->AddRelativeLocation(FVector(0.f, cameraRotating, 0.f));
+
+
+
+	//	// rotate around player
+	//	FVector NewLocation = Ball->GetComponentLocation();
+
+	//	AngleAxis += DeltaTime * Multiplier;
+
+	//	if (AngleAxis >= 360.0f) AngleAxis = 0;	
+
+	//	FVector RotateValue = Dimensions.RotateAngleAxis(AngleAxis, AxisVector);
+	//	NewLocation.X += RotateValue.X;
+	//	NewLocation.Y += RotateValue.Y;
+	//	NewLocation.Z += RotateValue.Z;
+	//	FRotator NewRotation = FRotator(0, AngleAxis, 0);
+	//	FQuat QuatRotation = FQuat(NewRotation);
+	//	Camera->SetWorldLocationAndRotation(NewLocation, QuatRotation, false, 0, ETeleportType::None);
+
+	//}
 
 
 
@@ -245,9 +273,20 @@ void APlayerPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 
 	PlayerInputComponent->BindAction("Shoot", IE_Pressed, this, &APlayerPawn::Shoot);
 
+	PlayerInputComponent->BindAction("LeftClick", IE_Pressed, this, &APlayerPawn::LeftClick);
+	PlayerInputComponent->BindAction("RightClick", IE_Pressed, this, &APlayerPawn::RightClick);
+
+	PlayerInputComponent->BindAction("LeftClick", IE_Released, this, &APlayerPawn::LeftRelease);
+	PlayerInputComponent->BindAction("RightClick", IE_Released, this, &APlayerPawn::RightRelease);
+
+
 	PlayerInputComponent->BindAxis("TurnRate", this, &APlayerPawn::TurnAtRate);
 	PlayerInputComponent->BindAxis("LookUpRate", this, &APlayerPawn::LookUpAtRate);
-
+	PlayerInputComponent->BindAxis("ZoomInRate", this, &APlayerPawn::ZoomInRate);
+	//PlayerInputComponent->BindAxis("Turn", this, &APawn::AddControllerYawInput);
+	//PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
+	PlayerInputComponent->BindAxis("Turn", this, &APlayerPawn::TurnAtRate);
+	PlayerInputComponent->BindAxis("LookUp", this, &APlayerPawn::LookUpAtRate);
 }
 
 void APlayerPawn::RotateCW()
@@ -396,58 +435,146 @@ void APlayerPawn::OnHit(UPrimitiveComponent * HitComp, AActor * OtherActor, UPri
 	}
 }
 
-void APlayerPawn::RotateCameraCW()
+void APlayerPawn::TurnAtRate(float Rate)
 {
-	cameraRotating = 1;
-	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, FString::Printf(TEXT("RotateCameraCW")));
-}
-
-void APlayerPawn::RotateCameraCCW()
-{
-	cameraRotating = -1;
-	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, FString::Printf(TEXT("RotateCameraCCW")));
-}
-
-void APlayerPawn::RotateCameraCWRelease()
-{
-	if (cameraRotating > 0) {
-		cameraRotating = 0;
+	if (!LeftClickPressed && !RightClickPressed) {
+		AddControllerYawInput(Rate * BaseTurnRate * GetWorld()->GetDeltaSeconds());
 	}
-	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, FString::Printf(TEXT("RotateCameraCWRelease")));
+	else if (LeftClickPressed && !RightClickPressed){
+		Rate = Rate * 100;
+		shootDirection.Yaw = shootDirection.Yaw + Rate * GetWorld()->GetDeltaSeconds();
+		if (shootDirection.Yaw > 360) {
+			shootDirection.Yaw = 0;
+		}
+		if (shootDirection.Yaw < 0) {
+			shootDirection.Yaw = 360;
+		}
+	}
 }
 
-void APlayerPawn::RotateCameraCCWRelease()
+void APlayerPawn::LookUpAtRate(float Rate)
 {
-	if (cameraRotating < 0) {
-		cameraRotating = 0;
+	if (!LeftClickPressed && !RightClickPressed) {
+		AddControllerPitchInput(Rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds());
 	}
-	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, FString::Printf(TEXT("RotateCameraCCWRelease")));
+	else if (LeftClickPressed && !RightClickPressed) {
+		Rate = Rate * 50;
+		force = force + -Rate * GetWorld()->GetDeltaSeconds();
+		if (force > maxForce) {
+			force = maxForce;
+		}
+		if (force < minForce) {
+			force = minForce;
+		}
+	}
+	else if (!LeftClickPressed && RightClickPressed) {
+		CameraBoom->TargetArmLength = CameraBoom->TargetArmLength + (Rate * (BaseZoomRate * GetWorld()->GetDeltaSeconds())); // The camera follows at this distance behind the character	
+		if (CameraBoom->TargetArmLength > 2000) {
+			CameraBoom->TargetArmLength = 2000;
+		}
+		if (CameraBoom->TargetArmLength < 300) {
+			CameraBoom->TargetArmLength = 300;
+		}
+	}
+
 }
+
+void APlayerPawn::ZoomInRate(float Rate)
+{
+	CameraBoom->TargetArmLength = CameraBoom->TargetArmLength + (Rate * (BaseZoomRate * GetWorld()->GetDeltaSeconds())) ; // The camera follows at this distance behind the character	
+	 
+	if (CameraBoom->TargetArmLength > 2000) {
+		CameraBoom->TargetArmLength = 2000;
+	}
+	if (CameraBoom->TargetArmLength < 300) {
+		CameraBoom->TargetArmLength = 300;
+	}
+
+}
+void APlayerPawn::LeftClick()
+{
+	LeftClickPressed = true;
+}
+void APlayerPawn::LeftRelease()
+{
+	LeftClickPressed = false;
+}
+void APlayerPawn::RightClick()
+{
+	RightClickPressed = true;
+}
+void APlayerPawn::RightRelease()
+{
+	RightClickPressed = false;
+}
+//void APlayerPawn::RotateCameraCW()
+//{
+//	cameraRotating = 1;
+//	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, FString::Printf(TEXT("RotateCameraCW")));
+//}
+//
+//void APlayerPawn::RotateCameraCCW()
+//{
+//	cameraRotating = -1;
+//	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, FString::Printf(TEXT("RotateCameraCCW")));
+//}
+//
+//void APlayerPawn::RotateCameraCWRelease()
+//{
+//	if (cameraRotating > 0) {
+//		cameraRotating = 0;
+//	}
+//	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, FString::Printf(TEXT("RotateCameraCWRelease")));
+//}
+//
+//void APlayerPawn::RotateCameraCCWRelease()
+//{
+//	if (cameraRotating < 0) {
+//		cameraRotating = 0;
+//	}
+//	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, FString::Printf(TEXT("RotateCameraCCWRelease")));
+//}
 
 void APlayerPawn::CameraZoomIn()
 {
-	cameraZooming = 5; 
-	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, FString::Printf(TEXT("CameraZoomIn")));
+	//cameraZooming = -BaseZoomRate;
+	//GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, FString::Printf(TEXT("CameraZoomIn")));
+	CameraBoom->TargetArmLength = CameraBoom->TargetArmLength + (2500 * GetWorld()->GetDeltaSeconds()); // The camera follows at this distance behind the character	
+
+	if (CameraBoom->TargetArmLength > 2000) {
+		CameraBoom->TargetArmLength = 2000;
+	}
+	if (CameraBoom->TargetArmLength < 300) {
+		CameraBoom->TargetArmLength = 300;
+	}
 }
 
 void APlayerPawn::CameraZoomOut()
 {
-	cameraZooming = -5;
-	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, FString::Printf(TEXT("CameraZoomOut")));
+	//cameraZooming = BaseZoomRate;
+	//GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, FString::Printf(TEXT("CameraZoomOut")));
+	CameraBoom->TargetArmLength = CameraBoom->TargetArmLength + (-2500 * GetWorld()->GetDeltaSeconds()); // The camera follows at this distance behind the character	
+
+	if (CameraBoom->TargetArmLength > 2000) {
+		CameraBoom->TargetArmLength = 2000;
+	}
+	if (CameraBoom->TargetArmLength < 300) {
+		CameraBoom->TargetArmLength = 300;
+	}
 }
 
 void APlayerPawn::CameraZoomInRelease()
 {
-	if (cameraZooming > 0) {
-		cameraZooming = 0;
-	}
-	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, FString::Printf(TEXT("CameraZoomInRelease")));
+	//if (cameraZooming > 0) {
+	//	cameraZooming = 0;
+	//}
+	//GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, FString::Printf(TEXT("CameraZoomInRelease")));
 }
 
 void APlayerPawn::CameraZoomOutRelease()
 {
-	if (cameraZooming < 0) {
-		cameraZooming = 0;
-	}
-	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, FString::Printf(TEXT("CameraZoomOutRelease")));
+	//if (cameraZooming < 0) {
+	//	cameraZooming = 0;
+	//}
+	//GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, FString::Printf(TEXT("CameraZoomOutRelease")));
 }
