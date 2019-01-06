@@ -19,6 +19,7 @@
 #include "IceActor.h"
 #include "SpringboardActor.h"
 #include "FlagActor.h"
+//#include "gamemode"
 
 // Sets default values
 APlayerPawn::APlayerPawn()
@@ -48,7 +49,6 @@ APlayerPawn::APlayerPawn()
 	cameraZooming = 0;
 	BaseZoomRate = 500.f;
 	canSetShoot = false;
-	GetWorld()->GetTimerManager().SetTimer(canSetShootTimer, this, &APlayerPawn::canSetShootMethod, 1.0f, false, 1.0f);
 	//Makes a static mesh for the ball
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> BallMesh(TEXT("/Game/Meshes/BallStaticMesh.BallStaticMesh"));
 	Ball = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Ball0"));
@@ -117,6 +117,8 @@ void APlayerPawn::BeginPlay()
 	FindComponentByClass<USphereComponent>()->OnComponentBeginOverlap.AddDynamic(this, &APlayerPawn::OnOverlap);
 	FindComponentByClass<USphereComponent>()->OnComponentEndOverlap.AddDynamic(this, &APlayerPawn::OnOverlapEnd);
 	FindComponentByClass<USphereComponent>()->OnComponentHit.AddDynamic(this, &APlayerPawn::OnHit);
+	GetWorld()->GetTimerManager().SetTimer(canSetShootTimer, this, &APlayerPawn::canSetShootMethod, 1.0f, false, 1.0f);
+
 
 }
 
@@ -137,7 +139,7 @@ void APlayerPawn::Tick(float DeltaTime)
 	//FVector forwards = Ball->GetPhysicsLinearVelocity();
 	//DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation() + forwards, FColor(255, 0, 0), false, 0.05f, 0, 12.333);
 
-	float lineLonger = force * 20;
+	float lineLonger = force * 10;
 	FVector forwards = shootDirection.Vector()*lineLonger;
 
 	if (canShoot)
