@@ -15,22 +15,22 @@ class PROCEDURALGOLFV2_API AGameModeCPP : public AGameMode
 protected:
 	
 	virtual void InitGameState();
-	
-	UPROPERTY(EditAnywhere)
-		TSubclassOf<class APawn> PlayerPawn;
+	//
+	//UPROPERTY(EditAnywhere)
+	//	TSubclassOf<class APawn> PlayerPawn;
 
-	UPROPERTY(EditAnywhere)
-		TSubclassOf<class AController> PlayerController;
-	
-	AGameModeCPP();
+	//UPROPERTY(EditAnywhere)
+	//	TSubclassOf<class AController> PlayerController;
 
-	void MovePlayer();
+public:
 
-	int CurrentHole; //current hole
+	//static void MovePlayer(int CurrentHole);
 
-	float x[8]; //x of spawn
-	float y[8]; //y of spawn
-	float z[8]; //z of spawn
-	float r[8]; //yaw rotation of spawn
+	//int CurrentHole; //current hole
+
+	//float x[8]; //x of spawn
+	//float y[8]; //y of spawn
+	//float z[8]; //z of spawn
+	//float r[8]; //yaw rotation of spawn
 
 };

@@ -128,7 +128,7 @@ public:
 	float incrementForce, realDamping, iceDamping;
 
 	int overlappingIce;
-
+	int CurrentHole;
 	FTimerHandle canSetShootTimer;
 	FTimerHandle flagTimer;
 

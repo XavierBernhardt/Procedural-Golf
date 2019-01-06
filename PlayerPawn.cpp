@@ -1,5 +1,17 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
+// note to me
+/*
+	spawning platform mesh got deleted from a crash
+	it was the plane mesh
+	and some box collisions  around to make a cube
+
+	i want to make it so the player camera is looking straight down & cant be moved until the player is at hole 1.
+
+*/
+
+
+
 #include "PlayerPawn.h"
 #include "Engine.h"
 
@@ -18,8 +30,8 @@
 #include "Runtime/Engine/Classes/GameFramework/PlayerController.h"
 #include "IceActor.h"
 #include "SpringboardActor.h"
+#include "GameModeCPP.h"
 #include "FlagActor.h"
-//#include "gamemode"
 
 // Sets default values
 APlayerPawn::APlayerPawn()
@@ -44,11 +56,12 @@ APlayerPawn::APlayerPawn()
 	overlappingIce = 0;
 	JumpImpulse = 350000.0f;
 	slowValue = 20; //velocities below this are considered slow
-	touchedFlag = false;
+	touchedFlag = true;
 	//cameraRotating = 0;
 	cameraZooming = 0;
 	BaseZoomRate = 500.f;
 	canSetShoot = false;
+	CurrentHole = 0;
 	//Makes a static mesh for the ball
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> BallMesh(TEXT("/Game/Meshes/BallStaticMesh.BallStaticMesh"));
 	Ball = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Ball0"));
@@ -60,6 +73,7 @@ APlayerPawn::APlayerPawn()
 	Ball->BodyInstance.MassScale = 3.5f;
 	Ball->BodyInstance.MaxAngularVelocity = 800.0f;
 	Ball->SetNotifyRigidBodyCollision(true);
+	//GetRootComponent()->SetHiddenInGame(true);
 	RootComponent = Ball;
 
 	//Makes a static mesh for the force visualiser (cylinder)
@@ -91,20 +105,22 @@ APlayerPawn::APlayerPawn()
 
 	BaseTurnRate = 45.f;
 	BaseLookUpRate = 45.f;
-		// Create a camera boom (pulls in towards the player if there is a collision)
+
+	// Create a camera boom (pulls in towards the player if there is a collision)
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(RootComponent);
 //	CameraBoom->bAbsoluteRotation = true; // Rotation of the ball should not affect rotation of boom
-	CameraBoom->RelativeRotation = FRotator(-45.f, 0.f, 0.f);
 	CameraBoom->TargetArmLength = 1200.f; // The camera follows at this distance behind the character	
 	CameraBoom->bUsePawnControlRotation = true; // Rotate the arm based on the controller
 	CameraBoom->bEnableCameraLag = false;
+	//CameraBoom->RelativeRotation = FRotator(-45.f, 0.f, 0.f);
 
 
 	// Create a follow camera
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
+	//FollowCamera->RelativeRotation = FRotator(-45.f, 0.f, 0.f);
 
 }
 
@@ -376,6 +392,8 @@ void APlayerPawn::canSetShootMethod()
 }
 void APlayerPawn::flagTimerMethod()
 {
+	//AGameModeCPP::MovePlayer(CurrentHole);
+	SetActorLocation(FVector(5860.f, -8449.f, 555.f));
 	//logic for next level goes here
 	canSetShoot = true;
 	touchedFlag = false;
