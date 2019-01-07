@@ -14,6 +14,21 @@ void AGameModeCPP::InitGameState()
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, TEXT("InitState"));
 
+		FString LevelName = GetWorld()->GetMapName();
+		LevelName.RemoveFromStart(GetWorld()->StreamingLevelsPrefix);
+
+//		GEngine->AddOnScreenDebugMessage(-1, 99.0f, FColor::White, FString::Printf(TEXT("Level=%s"), *LevelName));
+
+
+		if (LevelName.Equals("MazeGeneration")) {
+			GEngine->AddOnScreenDebugMessage(110, 99.f, FColor::Cyan, TEXT("Current Level: Maze Generation"));
+
+		}
+		if (LevelName.Equals("ControlMap")) {
+			GEngine->AddOnScreenDebugMessage(110, 99.f, FColor::Cyan, TEXT("Current Level: Control Map"));
+
+		}
+
 		//CurrentHole = 0;
 
 		////Code to fill the locations of each starting point

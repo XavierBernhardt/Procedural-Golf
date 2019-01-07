@@ -127,14 +127,23 @@ APlayerPawn::APlayerPawn()
 // Called when the game starts or when spawned
 void APlayerPawn::BeginPlay()
 {
+
 	Super::BeginPlay();
+
+
 	GEngine->AddOnScreenDebugMessage(100, 5.0f, FColor::White, TEXT("Begin"));
 
 	FindComponentByClass<USphereComponent>()->OnComponentBeginOverlap.AddDynamic(this, &APlayerPawn::OnOverlap);
 	FindComponentByClass<USphereComponent>()->OnComponentEndOverlap.AddDynamic(this, &APlayerPawn::OnOverlapEnd);
 	FindComponentByClass<USphereComponent>()->OnComponentHit.AddDynamic(this, &APlayerPawn::OnHit);
-	GetWorld()->GetTimerManager().SetTimer(canSetShootTimer, this, &APlayerPawn::canSetShootMethod, 1.0f, false, 1.0f);
 
+	GetWorld()->GetTimerManager().SetTimer(flagTimer, this, &APlayerPawn::flagTimerMethod, 2.0f, false, 2.0f);
+
+	NextFlag = FVector(0.f, 0.f, 2000); // Spawn Platform at 0,0,2000
+
+	//NextFlag = FVector(5860.f, -8449.f, 555.f); // TestLevel Hole0
+
+	//NextFlag = FVector(-800.f, -22800.f, 100.f); // Mockup Maze Hole0
 
 }
 
@@ -393,7 +402,7 @@ void APlayerPawn::canSetShootMethod()
 void APlayerPawn::flagTimerMethod()
 {
 	//AGameModeCPP::MovePlayer(CurrentHole);
-	SetActorLocation(FVector(5860.f, -8449.f, 555.f));
+	SetActorLocation(NextFlag);
 	//logic for next level goes here
 	canSetShoot = true;
 	touchedFlag = false;
