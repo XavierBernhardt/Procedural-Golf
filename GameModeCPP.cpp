@@ -124,7 +124,7 @@ void AGameModeCPP::MazeGenerationBegin()
 
 }
 
-int ** AGameModeCPP::DepthFirstMaze(int size)
+vector<vector<int>> AGameModeCPP::DepthFirstMaze(int size)
 {
 	/*
 	Concept:
@@ -160,8 +160,7 @@ int ** AGameModeCPP::DepthFirstMaze(int size)
 	int curX = startX;
 	int curY = starty;
 
-	// 0 = North , 1 = East , 2 = South, 3 = West
-	int lookDir = FMath::RandRange(0, 3);
+	int pathToGo = pathLength;
 
 	// 0 = wall
 	// 1 = path
@@ -177,39 +176,49 @@ int ** AGameModeCPP::DepthFirstMaze(int size)
 			0	1	1	1	0
 	*/
 
-	switch (lookDir){
+
+	while (pathToGo >= 0) {
+
+		//Select a random direction to go in
+		//0 = North , 1 = East , 2 = South, 3 = West
+		int lookDir = FMath::RandRange(0, 3);
+
+		switch (lookDir) {
 		case 0: //North
 		{
 			if (curY <= 1) { //out of north bounds
 				break;
 			}
-			else if (grid[curX][curY-2] == 0) { //see if north block 2 away is a wall
+			else if (grid[curX][curY - 2] == 0) { //see if north block 2 away is a wall
 				curY = curY - 2; //if so, move there
 				grid[curX][curY] = 1; //set that location to be a path
+				pathToGo--;
 				break;
 			}
 			break; //should only be reached if that location is a path
 		}
 		case 1: //East
 		{
-			if (curX >= size-1) { //out of east bounds [..] [size-1] [size]| -> out of bounds
+			if (curX >= size - 1) { //out of east bounds [..] [size-1] [size]| -> out of bounds
 				break;
 			}
-			else if (grid[curX+2][curY] == 0) { //see if east block 2 away is a wall
+			else if (grid[curX + 2][curY] == 0) { //see if east block 2 away is a wall
 				curX = curX + 2; //if so, move there
 				grid[curX][curY] = 1; //set that location to be a path
+				pathToGo--;
 				break;
 			}
 			break; //should only be reached if that location is a path
 		}
 		case 2: //South
 		{										//      [..]
-			if (curY >= size-1) { //out of south bounds [size-1] 
+			if (curY >= size - 1) { //out of south bounds [size-1] 
 				break;							//		[size] 
 			}									//      \/ out of bounds
 			else if (grid[curX][curY + 2] == 0) { //see if south block 2 away is a wall
 				curY = curY + 2; //if so, move there
 				grid[curX][curY] = 1; //set that location to be a path
+				pathToGo--;
 				break;
 			}
 			break; //should only be reached if that location is a path
@@ -222,18 +231,18 @@ int ** AGameModeCPP::DepthFirstMaze(int size)
 			else if (grid[curX - 2][curY] == 0) { //see if west block 2 away is a wall
 				curX = curX - 2; //if so, move there
 				grid[curX][curY] = 1; //set that location to be a path
+				pathToGo--;
 				break;
 			}
 			break; //should only be reached if that location is a path
 		}
+		}
 	}
-
 
 
 	//set playerstart to whatever
 	//set flag to whatever
-	return nullptr; //return the grid
-	
+	return grid; //return the grid
 }
 
 

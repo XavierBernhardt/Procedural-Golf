@@ -4,8 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameMode.h"
+#include "vector"
 #include "GameModeCPP.generated.h"
-
 
 UCLASS()
 class PROCEDURALGOLFV2_API AGameModeCPP : public AGameMode
@@ -55,8 +55,8 @@ public:
 	void MazeGenerationBegin(); //add in things like "nodeadends" here, etc.
 
 	const int mazeSize = 5;
-
-	int** DepthFirstMaze(int size);
+	const int pathLength = 9;
+	vector<vector<int>> DepthFirstMaze(int size);
 
 	//static void MovePlayer(int CurrentHole);
 
