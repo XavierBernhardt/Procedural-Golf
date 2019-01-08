@@ -1,9 +1,19 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "GameModeCPP.h"
 #include "Engine.h"
 #include "Engine/World.h"
 #include "PlayerPawn.h"
+#include "vector"
+#include "UnrealMathUtility.h"
+#include "Components/StaticMeshComponent.h"
+
+using namespace std;
+
+AGameModeCPP::AGameModeCPP()
+{
+//constructor
+}
 
 void AGameModeCPP::InitGameState()
 {
@@ -22,11 +32,11 @@ void AGameModeCPP::InitGameState()
 
 		if (LevelName.Equals("MazeGeneration")) {
 			GEngine->AddOnScreenDebugMessage(110, 99.f, FColor::Cyan, TEXT("Current Level: Maze Generation"));
-
+			MazeGenerationBegin();
 		}
 		if (LevelName.Equals("ControlMap")) {
 			GEngine->AddOnScreenDebugMessage(110, 99.f, FColor::Cyan, TEXT("Current Level: Control Map"));
-
+			
 		}
 
 		//CurrentHole = 0;
@@ -66,6 +76,10 @@ void AGameModeCPP::InitGameState()
 	}
 }
 
+
+
+
+
 //void AGameModeCPP::MovePlayer(int CurrentHole)
 //{
 //	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, TEXT("Moving Player..."));
@@ -82,3 +96,144 @@ void AGameModeCPP::InitGameState()
 //
 //	////GetWorld()->SpawnActor<APawn>(PlayerPawn, spawnLocation, rotator, spawnParams);
 //}
+
+
+
+void AGameModeCPP::MazeGenerationBegin()
+{ 
+
+	//Depth first here
+	DepthFirstMaze(mazeSize);
+
+
+
+
+	//FActorSpawnParameters spawnParams;
+	//FRotator rotator = FRotator(0,0,0); //this is where you add rotation to the pieces
+	//FVector spawnLocation = FVector(0.f,0.f,0.f); //spawn at 0,0,0
+
+	//GetWorld()->SpawnActor<AActor>(MazeC, spawnLocation, rotator, spawnParams);
+
+	//rotator = FRotator(0, 180, 0); 
+	//spawnLocation = FVector(-2000.f, 0.f, 0.f); 
+	//GetWorld()->SpawnActor<AActor>(MazeC, spawnLocation, rotator, spawnParams);
+
+	//rotator = FRotator(0, 0, 0);
+	//spawnLocation = FVector(0.f, 0.f, 1.f);
+	//GetWorld()->SpawnActor<AActor>(MazeFloor, spawnLocation, rotator, spawnParams);
+
+}
+
+int ** AGameModeCPP::DepthFirstMaze(int size)
+{
+	/*
+	Concept:
+		Create sizexsize matrix to represent the grid
+			Size must be an odd number for this to work properly, 
+			otherwise the some sides might be 2 walls thick
+
+		Fill every cell in the grid with "0" (a wall)
+			0 is used since c++ sets vectors to 0 by default 
+				-> makes resetting much faster & easier
+
+		Start somewhere random across an edge
+			Note this position as where the playerstart will be later
+
+		Move around matrix 2 steps at a time to create a maze
+			Do not move if out of bounds or hitting a path
+			If its an okay spot to move to, move and set position to "1"
+
+		Note final location as where the flag will be
+		Output this grid and start and ending positions
+	*/
+	
+	//assume size = 9
+	//the grid is always a square (easier for this and not really neccessary to be rectangle here)
+	//although rectangles could be used to make wide short levels.
+	//could modify this to add those later.
+
+	vector<vector<int>> grid(size, vector<int>(size)); //create the grid of sizexsize
+
+	int startX = FMath::RandRange(0, size); //later these will be public variables for playerstart.
+	int starty = FMath::RandRange(0, size);
+
+	int curX = startX;
+	int curY = starty;
+
+	// 0 = North , 1 = East , 2 = South, 3 = West
+	int lookDir = FMath::RandRange(0, 3);
+
+	// 0 = wall
+	// 1 = path
+
+	/*
+	Might generate something like this:
+	starting location is 3,1
+	ending location is 4,4
+	maze = 	0	0	0	0	0
+			0	1	1	0	0
+			0	1	0	0	0
+			0	1	0	1	0	
+			0	1	1	1	0
+	*/
+
+	switch (lookDir){
+		case 0: //North
+		{
+			if (curY <= 1) { //out of north bounds
+				break;
+			}
+			else if (grid[curX][curY-2] == 0) { //see if north block 2 away is a wall
+				curY = curY - 2; //if so, move there
+				grid[curX][curY] = 1; //set that location to be a path
+				break;
+			}
+			break; //should only be reached if that location is a path
+		}
+		case 1: //East
+		{
+			if (curX >= size-1) { //out of east bounds [..] [size-1] [size]| -> out of bounds
+				break;
+			}
+			else if (grid[curX+2][curY] == 0) { //see if east block 2 away is a wall
+				curX = curX + 2; //if so, move there
+				grid[curX][curY] = 1; //set that location to be a path
+				break;
+			}
+			break; //should only be reached if that location is a path
+		}
+		case 2: //South
+		{										//      [..]
+			if (curY >= size-1) { //out of south bounds [size-1] 
+				break;							//		[size] 
+			}									//      \/ out of bounds
+			else if (grid[curX][curY + 2] == 0) { //see if south block 2 away is a wall
+				curY = curY + 2; //if so, move there
+				grid[curX][curY] = 1; //set that location to be a path
+				break;
+			}
+			break; //should only be reached if that location is a path
+		}
+		case 3: //West
+		{
+			if (curX <= 1) { //out of west bounds
+				break;
+			}
+			else if (grid[curX - 2][curY] == 0) { //see if west block 2 away is a wall
+				curX = curX - 2; //if so, move there
+				grid[curX][curY] = 1; //set that location to be a path
+				break;
+			}
+			break; //should only be reached if that location is a path
+		}
+	}
+
+
+
+	//set playerstart to whatever
+	//set flag to whatever
+	return nullptr; //return the grid
+	
+}
+
+

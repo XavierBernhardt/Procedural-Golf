@@ -20,9 +20,43 @@ protected:
 	//	TSubclassOf<class APawn> PlayerPawn;
 
 	//UPROPERTY(EditAnywhere)
-	//	TSubclassOf<class AController> PlayerController;
+	//	TSubclassOf<class AController> PlayerController
+
+	UPROPERTY(EditAnywhere)
+		TSubclassOf<class AActor> MazeN;
+	
+	UPROPERTY(EditAnywhere)
+		TSubclassOf<class AActor> MazeC;
+
+	UPROPERTY(EditAnywhere)
+		TSubclassOf<class AActor> MazeL;
+
+	UPROPERTY(EditAnywhere)
+		TSubclassOf<class AActor> MazeI;
+
+	UPROPERTY(EditAnywhere)
+		TSubclassOf<class AActor> MazeT;
+
+	UPROPERTY(EditAnywhere)
+		TSubclassOf<class AActor> MazeX;
+
+	UPROPERTY(EditAnywhere)
+		TSubclassOf<class AActor> MazeFloor;
+
+	UPROPERTY(EditAnywhere)
+		TSubclassOf<class AActor> FlagBP;
 
 public:
+
+
+	// Sets default values for this actors's properties
+	AGameModeCPP();
+
+	void MazeGenerationBegin(); //add in things like "nodeadends" here, etc.
+
+	const int mazeSize = 5;
+
+	int** DepthFirstMaze(int size);
 
 	//static void MovePlayer(int CurrentHole);
 
@@ -34,3 +68,4 @@ public:
 	//float r[8]; //yaw rotation of spawn
 
 };
+
