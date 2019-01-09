@@ -306,6 +306,8 @@ void APlayerPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	PlayerInputComponent->BindAction("LeftClick", IE_Released, this, &APlayerPawn::LeftRelease);
 	PlayerInputComponent->BindAction("RightClick", IE_Released, this, &APlayerPawn::RightRelease);
 
+	PlayerInputComponent->BindAction("RestartPressed", IE_Pressed, this, &APlayerPawn::RestartPressed);
+
 
 	PlayerInputComponent->BindAxis("TurnRate", this, &APlayerPawn::TurnAtRate);
 	PlayerInputComponent->BindAxis("LookUpRate", this, &APlayerPawn::LookUpAtRate);
@@ -314,6 +316,7 @@ void APlayerPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	//PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
 	PlayerInputComponent->BindAxis("Turn", this, &APlayerPawn::TurnAtRate);
 	PlayerInputComponent->BindAxis("LookUp", this, &APlayerPawn::LookUpAtRate);
+
 }
 
 void APlayerPawn::RotateCW()
@@ -606,4 +609,10 @@ void APlayerPawn::CameraZoomOutRelease()
 	//	cameraZooming = 0;
 	//}
 	//GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, FString::Printf(TEXT("CameraZoomOutRelease")));
+}
+
+void APlayerPawn::RestartPressed() {
+	GEngine->ClearOnScreenDebugMessages();
+	GEngine->AddOnScreenDebugMessage(105, 3.0f, FColor::Green, FString::Printf(TEXT("RESTARTING")));
+	UGameplayStatics::OpenLevel(this, FName(*GetWorld()->GetName()), false);
 }

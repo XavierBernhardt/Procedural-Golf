@@ -292,11 +292,13 @@ void AGameModeCPP::DFMtoUnreal()
 			cout << maze[i][j] << " ";
 			spawnLocation = FVector(realX, realY, 0.f); //spawn at 0,0,0
 
-			if (maze[i][j] == 0) {
-				GetWorld()->SpawnActor<AActor>(MazeX, spawnLocation, rotator, spawnParams);
+			if (maze[i][j] == 1) {
+				GetWorld()->SpawnActor<AActor>(MazeN, spawnLocation, rotator, spawnParams);
 			}
 			else {
-				GetWorld()->SpawnActor<AActor>(MazeN, spawnLocation, rotator, spawnParams);
+				placePiece(i,j);
+				rotator = FRotator(0, pieceToRotate, 0);
+				GetWorld()->SpawnActor<AActor>(pieceToPlace, spawnLocation, rotator, spawnParams);
 			}
 
 			realY = realY + 2000;
@@ -304,11 +306,87 @@ void AGameModeCPP::DFMtoUnreal()
 		realY = 0.f;
 		realX = realX + 2000;
 	}
-
 	//rotator = FRotator(0, 0, 0);
 	//spawnLocation = FVector(0.f, 0.f, 1.f);
 	//GetWorld()->SpawnActor<AActor>(MazeFloor, spawnLocation, rotator, spawnParams);
+}
 
+void AGameModeCPP::placePiece(int x, int y)
+{
+	pieceToPlace = MazeN; //by default place a solid block
+	pieceToRotate = 0; //rotation is 0 by default
+
+	//Each wall is open by default
+	bool north = false;
+	bool east = false;
+	bool south = false;
+	bool west = false;
+	int openWalls = 4; //all 4 are open
+
+	if ((y == 0 )| (maze[x][y-1] == 1)) { //if top row, or there is a wall above
+		north = true; //close north wall
+		openWalls--;
+	}
+	if ((x == mazeSize-1) | (maze[x + 1][y] == 1)) { //if top row, or there is a wall above
+		east = true; //close east wall
+		openWalls--;
+	}
+	if ((y == mazeSize - 1) | (maze[x][y + 1] == 1)) { //if top row, or there is a wall above
+		south = true; //close south wall
+		openWalls--;
+	}
+	if ((x == 0) | (maze[x-1][y] == 1)) { //if top row, or there is a wall above
+		west = true; //close west wall
+		openWalls--;
+	}
+
+	//could use these to generate walls and not place pieces 
+	//am going to place pieces however as it allows for more design variation (different L pieces etc)
+	
+	switch (openWalls) {
+		case (0): { // no open walls
+			pieceToPlace = MazeN; //place filled block piece
+			break;
+		}
+		case (1): { // 1 open wall
+			pieceToPlace = MazeC; //1 open wall = C piece
+			if (west == false) pieceToRotate = 0;
+			else if (north == false) pieceToRotate = 90;
+			else if (east == false) pieceToRotate = 180;
+			else pieceToRotate = 270;
+			break;
+		}
+		case (2): { // 2 open walls
+
+			if ((north == true && south == true) || (west == true && east == true)) { 
+				pieceToPlace = MazeI; //2 open walls = either L or I
+				if (west == true) pieceToRotate = 90;
+			}
+			else { //bottom and right are open by default rotation
+				pieceToPlace = MazeL; //2 
+				if (north == true && east == true) pieceToRotate = 0;
+				else if (east == true && south == true) pieceToRotate = 90;
+				else if (south == true && west == true) pieceToRotate = 180;
+				else pieceToRotate = 270;
+			}
+			break;
+		}
+		case (3): { // 3 open walls
+			pieceToPlace = MazeT; //3 open walls = T piece
+			//left wall closed
+			if (north == true) pieceToRotate = 0; 
+			else if (east == true) pieceToRotate = 90; 
+			else if (south == true) pieceToRotate = 180;
+			else pieceToRotate = 270;
+
+			break;
+		}
+		case (4): { // 4 open walls
+			pieceToPlace = MazeX; //4 open walls = X piece
+			break;
+		}
+	}
+	
 
 }
 

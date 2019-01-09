@@ -171,6 +171,6 @@ public:
 
 	FVector NextFlag;
 
-
+	void RestartPressed();
 }
 ;

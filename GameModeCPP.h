@@ -86,5 +86,10 @@ public:
 	void DFMtoUnreal();
 	int row, col;
 
+	void placePiece(int x, int y);
+	TSubclassOf<class AActor> pieceToPlace = MazeN; //by default place a solid block
+	int pieceToRotate = 0; //rotation is 0 by default
+
+
 };
 
