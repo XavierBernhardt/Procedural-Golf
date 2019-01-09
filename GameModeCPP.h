@@ -56,7 +56,15 @@ public:
 
 	const int mazeSize = 5;
 	const int pathLength = 9;
-	vector<vector<int>> DepthFirstMaze(int size);
+	int startX;
+	int startY;
+	int endX;
+	int endY;
+
+	//vector<vector<int>> DepthFirstMaze(int size);
+	void DepthFirstMaze(int size);
+
+	std::vector<std::vector<int>> grid;
 
 	//static void MovePlayer(int CurrentHole);
 

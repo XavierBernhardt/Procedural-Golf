@@ -4,7 +4,6 @@
 #include "Engine.h"
 #include "Engine/World.h"
 #include "PlayerPawn.h"
-#include "vector"
 #include "UnrealMathUtility.h"
 #include "Components/StaticMeshComponent.h"
 
@@ -34,7 +33,7 @@ void AGameModeCPP::InitGameState()
 			GEngine->AddOnScreenDebugMessage(110, 99.f, FColor::Cyan, TEXT("Current Level: Maze Generation"));
 			MazeGenerationBegin();
 		}
-		if (LevelName.Equals("ControlMap")) {
+		else if (LevelName.Equals("ControlMap")) {
 			GEngine->AddOnScreenDebugMessage(110, 99.f, FColor::Cyan, TEXT("Current Level: Control Map"));
 			
 		}
@@ -124,7 +123,8 @@ void AGameModeCPP::MazeGenerationBegin()
 
 }
 
-vector<vector<int>> AGameModeCPP::DepthFirstMaze(int size)
+//vector<vector<int>> AGameModeCPP::DepthFirstMaze(int size
+void AGameModeCPP::DepthFirstMaze(int size)
 {
 	/*
 	Concept:
@@ -152,13 +152,13 @@ vector<vector<int>> AGameModeCPP::DepthFirstMaze(int size)
 	//although rectangles could be used to make wide short levels.
 	//could modify this to add those later.
 
-	vector<vector<int>> grid(size, vector<int>(size)); //create the grid of sizexsize
+	vector<vector<int>> newGrid(size, vector<int>(size)); //create the grid of sizexsize
 
-	int startX = FMath::RandRange(0, size); //later these will be public variables for playerstart.
-	int starty = FMath::RandRange(0, size);
+	startX = FMath::RandRange(0, size); //later these will be public variables for playerstart.
+	startY = FMath::RandRange(0, size);
 
 	int curX = startX;
-	int curY = starty;
+	int curY = startY;
 
 	int pathToGo = pathLength;
 
@@ -240,9 +240,16 @@ vector<vector<int>> AGameModeCPP::DepthFirstMaze(int size)
 	}
 
 
-	//set playerstart to whatever
-	//set flag to whatever
-	return grid; //return the grid
+	//Grid
+	grid = newGrid;
+
+	//Flag coordinates
+	endX = curX;
+	endY = curY;
+
+	//Player coordinates are startX and startY
+
+	//return grid; //return the grid
 }
 
 
