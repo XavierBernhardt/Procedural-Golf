@@ -54,15 +54,21 @@ public:
 
 	void MazeGenerationBegin(); //add in things like "nodeadends" here, etc.
 
-	const int mazeSize = 5;
-	const int pathLength = 9;
+	static const int mazeSize = 5;
+	static const int pathLength = 9;
 	int startX;
 	int startY;
 	int endX;
 	int endY;
 
+	//static int mazeSize = 5;
+	int maze[mazeSize][mazeSize];
+	//int pathLength;
+	bool deadEndHit = false;
+	bool noDeadEndsAllowed = false;
+
 	//vector<vector<int>> DepthFirstMaze(int size);
-	void DepthFirstMaze(int size);
+	void oldDepthFirstMaze(int size);
 
 	std::vector<std::vector<int>> grid;
 
@@ -74,6 +80,11 @@ public:
 	//float y[8]; //y of spawn
 	//float z[8]; //z of spawn
 	//float r[8]; //yaw rotation of spawn
+	int generateMaze(int r, int c);
+	void printMaze();
+	void depthFirstMaze();
+	void DFMtoUnreal();
+	int row, col;
 
 };
 
