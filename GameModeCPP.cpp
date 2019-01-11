@@ -153,6 +153,8 @@ int AGameModeCPP::generateMaze(int r, int c)
 			if (maze[r - 2][c] != 0) {
 				maze[r - 2][c] = 0;
 				maze[r - 1][c] = 0;
+				endX = r;
+				endY = c;
 				generateMaze(r - 2, c);
 			}
 			break;
@@ -164,6 +166,8 @@ int AGameModeCPP::generateMaze(int r, int c)
 			if (maze[r][c + 2] != 0) {
 				maze[r][c + 2] = 0;
 				maze[r][c + 1] = 0;
+				endX = r;
+				endY = c;
 				generateMaze(r, c + 2);
 			}
 			break;
@@ -175,6 +179,8 @@ int AGameModeCPP::generateMaze(int r, int c)
 			if (maze[r + 2][c] != 0) {
 				maze[r + 2][c] = 0;
 				maze[r + 1][c] = 0;
+				endX = r;
+				endY = c;
 				generateMaze(r + 2, c);
 			}
 			break;
@@ -186,6 +192,8 @@ int AGameModeCPP::generateMaze(int r, int c)
 			if (maze[r][c - 2] != 0) {
 				maze[r][c - 2] = 0;
 				maze[r][c - 1] = 0;
+				endX = r;
+				endY = c;
 				generateMaze(r, c - 2);
 			}
 		}
@@ -269,15 +277,19 @@ void AGameModeCPP::depthFirstMaze()
 	}
 
 	maze[row][col] = 0;
+	startX = row * 2000;
+	startY = col * 2000;
+
+	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Gamemode: StartX = %i  StartY = %i"), startX, startY));
 
 	generateMaze(row, col);
-
 	printMaze();
 }
 
 void AGameModeCPP::DFMtoUnreal()
 {
 	FActorSpawnParameters spawnParams;
+	spawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn; 
 	FRotator rotator = FRotator(0, 0, 0); //this is where you add rotation to the pieces
 	FVector spawnLocation = FVector(0.f, 0.f, 0.f); //spawn at 0,0,0
 	float realX = 0.f;
@@ -296,9 +308,14 @@ void AGameModeCPP::DFMtoUnreal()
 				GetWorld()->SpawnActor<AActor>(MazeN, spawnLocation, rotator, spawnParams);
 			}
 			else {
-				placePiece(i,j);
+				placePiece(i, j);
 				rotator = FRotator(0, pieceToRotate, 0);
 				GetWorld()->SpawnActor<AActor>(pieceToPlace, spawnLocation, rotator, spawnParams);
+			}
+			rotator = FRotator(0, 0, 0);
+			if (i == endX && j == endY) {
+				spawnLocation = FVector(realX, realY, 5.f);
+				GetWorld()->SpawnActor<AActor>(FlagBP, spawnLocation, rotator, spawnParams);
 			}
 
 			realY = realY + 2000;
@@ -306,9 +323,9 @@ void AGameModeCPP::DFMtoUnreal()
 		realY = 0.f;
 		realX = realX + 2000;
 	}
-	//rotator = FRotator(0, 0, 0);
-	//spawnLocation = FVector(0.f, 0.f, 1.f);
-	//GetWorld()->SpawnActor<AActor>(MazeFloor, spawnLocation, rotator, spawnParams);
+	rotator = FRotator(0, 0, 0);
+	spawnLocation = FVector(4000.f, 4000.f, 5.f);
+	GetWorld()->SpawnActor<AActor>(MazeFloor, spawnLocation, rotator, spawnParams);
 }
 
 void AGameModeCPP::placePiece(int x, int y)

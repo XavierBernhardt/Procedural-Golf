@@ -171,6 +171,7 @@ public:
 
 	FVector NextFlag;
 
+	void SetNextFlag(FVector location);
 	void RestartPressed();
 }
 ;

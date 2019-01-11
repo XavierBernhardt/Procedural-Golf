@@ -18,7 +18,7 @@ AMazeFloor::AMazeFloor()
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> FloorMesh(TEXT("/Game/Meshes/MazeFloorMesh.MazeFloorMesh"));
 	MazeFloorObj = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MazeFloor_Generated"));
 	MazeFloorObj->SetStaticMesh(FloorMesh.Object);
-	FVector newScale = FVector(500.f, 500.f, 1.f); //this is where you make the floor scale with grid size
+	FVector newScale = FVector(100.f, 100.f, 1.f); //this is where you make the floor scale with grid size
 	MazeFloorObj->SetWorldScale3D(newScale);
 
 }

@@ -15,6 +15,8 @@ class PROCEDURALGOLFV2_API AGameModeCPP : public AGameMode
 protected:
 	
 	virtual void InitGameState();
+
+
 	//
 	//UPROPERTY(EditAnywhere)
 	//	TSubclassOf<class APawn> PlayerPawn;
@@ -56,10 +58,11 @@ public:
 
 	static const int mazeSize = 5;
 	static const int pathLength = 9;
-	int startX;
-	int startY;
-	int endX;
-	int endY;
+	float startX;
+	float startY;
+	float endX;
+	float endY;
+
 
 	//static int mazeSize = 5;
 	int maze[mazeSize][mazeSize];

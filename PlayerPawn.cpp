@@ -49,7 +49,7 @@ APlayerPawn::APlayerPawn()
 	canShoot = false;
 	rotating = 0;
 	shootDirection = FRotator(0.f,0.f,0.f);
-	slowMoving = false;
+	slowMoving = true;
 	dampingDefault = 1.2f;
 	realDamping = dampingDefault;
 	iceDamping = (dampingDefault / 3);
@@ -73,6 +73,9 @@ APlayerPawn::APlayerPawn()
 	Ball->BodyInstance.MassScale = 3.5f;
 	Ball->BodyInstance.MaxAngularVelocity = 800.0f;
 	Ball->SetNotifyRigidBodyCollision(true);
+	Ball->SetAllUseCCD(true);
+	Ball->SetRenderCustomDepth(true);
+
 	//GetRootComponent()->SetHiddenInGame(true);
 	RootComponent = Ball;
 
@@ -168,7 +171,7 @@ void APlayerPawn::Tick(float DeltaTime)
 	FVector forwards = shootDirection.Vector()*lineLonger;
 
 	if (canShoot)
-		DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation() + forwards, FColor(45, 65, 115), false, 0.01f, 0, 12.333);
+		DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation() + forwards, FColor(239, 239, 239), false, 0.04f, 0, 12.333);
 	else
 		//DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation() + forwards, FColor(255, 0, 0), false, 0.01f, 0, 12.333);
 
@@ -199,8 +202,8 @@ void APlayerPawn::Tick(float DeltaTime)
 	if (!canShoot && canSetShoot) { //nested if here to save doing the calcs below if unneccessary
 		if (	(Ball->GetPhysicsLinearVelocity().X < slowValue) && (Ball->GetPhysicsLinearVelocity().X > -slowValue)	&&
 				(Ball->GetPhysicsLinearVelocity().Y < slowValue) && (Ball->GetPhysicsLinearVelocity().Y > -slowValue)	&&
-				//(Ball->GetPhysicsLinearVelocity().Z < slowValue) && (Ball->GetPhysicsLinearVelocity().Z > -slowValue)	)
-				(Ball->GetPhysicsLinearVelocity().Z == 0))
+				(Ball->GetPhysicsLinearVelocity().Z < 0.05) && (Ball->GetPhysicsLinearVelocity().Z > -0.05)	)
+				//(Ball->GetPhysicsLinearVelocity().Z == 0))
 		{
 			slowMoving = true;
 		}
@@ -405,8 +408,20 @@ void APlayerPawn::canSetShootMethod()
 void APlayerPawn::flagTimerMethod()
 {
 	//AGameModeCPP::MovePlayer(CurrentHole);
+
+	AGameModeCPP * GameModeCPP = Cast<AGameModeCPP>(UGameplayStatics::GetGameMode(GetWorld()));
+
+	if (GameModeCPP != nullptr) {
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Player: StartX = %i  StartY = %i"), GameModeCPP->startX, GameModeCPP->startY));
+
+		SetNextFlag(FVector(GameModeCPP->startX , GameModeCPP->startY , 10.f));
+	}
+	else
+		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, FString::Printf(TEXT("Gamemode not found.")));
+	   
 	SetActorLocation(NextFlag);
 	//logic for next level goes here
+	slowMoving = false;
 	canSetShoot = true;
 	touchedFlag = false;
 }
@@ -609,6 +624,11 @@ void APlayerPawn::CameraZoomOutRelease()
 	//	cameraZooming = 0;
 	//}
 	//GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, FString::Printf(TEXT("CameraZoomOutRelease")));
+}
+
+void APlayerPawn::SetNextFlag(FVector location)
+{
+	NextFlag = location;
 }
 
 void APlayerPawn::RestartPressed() {
