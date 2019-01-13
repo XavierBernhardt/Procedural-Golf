@@ -55,7 +55,7 @@ APlayerPawn::APlayerPawn()
 	iceDamping = (dampingDefault / 3);
 	overlappingIce = 0;
 	JumpImpulse = 350000.0f;
-	slowValue = 20; //velocities below this are considered slow
+	slowValue = 50; //velocities below this are considered slow
 	touchedFlag = true;
 	//cameraRotating = 0;
 	cameraZooming = 0;
@@ -118,12 +118,12 @@ APlayerPawn::APlayerPawn()
 	CameraBoom->bEnableCameraLag = false;
 	//CameraBoom->RelativeRotation = FRotator(-45.f, 0.f, 0.f);
 
-
 	// Create a follow camera
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 	//FollowCamera->RelativeRotation = FRotator(-45.f, 0.f, 0.f);
+
 
 }
 
@@ -140,7 +140,8 @@ void APlayerPawn::BeginPlay()
 	FindComponentByClass<USphereComponent>()->OnComponentEndOverlap.AddDynamic(this, &APlayerPawn::OnOverlapEnd);
 	FindComponentByClass<USphereComponent>()->OnComponentHit.AddDynamic(this, &APlayerPawn::OnHit);
 
-	GetWorld()->GetTimerManager().SetTimer(flagTimer, this, &APlayerPawn::flagTimerMethod, 2.0f, false, 2.0f);
+	GetWorld()->GetTimerManager().SetTimer(flagTimer, this, &APlayerPawn::RespawnPlayer, 0.01f, false, 0.01f);
+
 
 	NextFlag = FVector(0.f, 0.f, 2000); // Spawn Platform at 0,0,2000
 
@@ -170,9 +171,11 @@ void APlayerPawn::Tick(float DeltaTime)
 	float lineLonger = force * 10;
 	FVector forwards = shootDirection.Vector()*lineLonger;
 
-	if (canShoot)
-		DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation() + forwards, FColor(239, 239, 239), false, 0.04f, 0, 12.333);
-	else
+	if (canShoot) {
+		DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation() + forwards, FColor(239, 239, 239), false, 0.03f, 0, 12.333);
+		
+	}
+	//else
 		//DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation() + forwards, FColor(255, 0, 0), false, 0.01f, 0, 12.333);
 
 
@@ -405,26 +408,32 @@ void APlayerPawn::canSetShootMethod()
 	if (!touchedFlag)
 	canSetShoot = true;
 }
-void APlayerPawn::flagTimerMethod()
+void APlayerPawn::RespawnPlayer()
 {
-	//AGameModeCPP::MovePlayer(CurrentHole);
-
 	AGameModeCPP * GameModeCPP = Cast<AGameModeCPP>(UGameplayStatics::GetGameMode(GetWorld()));
 
 	if (GameModeCPP != nullptr) {
 		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Player: StartX = %i  StartY = %i"), GameModeCPP->startX, GameModeCPP->startY));
-
+		if (IsItNewLevel) {
+			GameModeCPP->resetDFM();
+			IsItNewLevel = false;
+		}
 		SetNextFlag(FVector(GameModeCPP->startX , GameModeCPP->startY , 10.f));
 	}
 	else
 		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, FString::Printf(TEXT("Gamemode not found.")));
 	   
 	SetActorLocation(NextFlag);
-	//logic for next level goes here
 	slowMoving = false;
 	canSetShoot = true;
 	touchedFlag = false;
+
+	if (CameraBoom->GetTargetRotation().Pitch == 0)
+	AddControllerPitchInput(15.f);
+
+
 }
+
 
 void APlayerPawn::OnOverlap(UPrimitiveComponent * HitComp, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
 {
@@ -451,7 +460,8 @@ void APlayerPawn::OnOverlap(UPrimitiveComponent * HitComp, AActor * OtherActor, 
 			touchedFlag = true;
 			slowMoving = true;
 			canShoot = false;
-			GetWorld()->GetTimerManager().SetTimer(flagTimer, this, &APlayerPawn::flagTimerMethod, 2.0f, false, 2.0f);
+			IsItNewLevel = true;
+			GetWorld()->GetTimerManager().SetTimer(flagTimer, this, &APlayerPawn::RespawnPlayer, 2.0f, false, 2.0f);
 		}
 	}
 
@@ -636,3 +646,4 @@ void APlayerPawn::RestartPressed() {
 	GEngine->AddOnScreenDebugMessage(105, 3.0f, FColor::Green, FString::Printf(TEXT("RESTARTING")));
 	UGameplayStatics::OpenLevel(this, FName(*GetWorld()->GetName()), false);
 }
+

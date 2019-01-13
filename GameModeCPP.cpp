@@ -106,19 +106,32 @@ void AGameModeCPP::InitGameState()
 
 void AGameModeCPP::MazeGenerationBegin()
 { 
-
 	//Depth first here
 	//oldDepthFirstMaze(mazeSize);
+	
+	//0 = C, 1 = I, 2 = L , 3 = N , 4 = T , 5 = X 
+	
+	MazePieces.Add(MazeC);
+	MazePieces.Add(MazeI);
+	MazePieces.Add(MazeL);
+	MazePieces.Add(MazeN);
+	MazePieces.Add(MazeT);
+	MazePieces.Add(MazeX);
+
+	MazePiecesAlt1.Add(MazeCAlt1);
+	MazePiecesAlt1.Add(MazeIAlt1);
+	MazePiecesAlt1.Add(MazeLAlt1);
+	MazePiecesAlt1.Add(MazeNAlt1);
+	MazePiecesAlt1.Add(MazeTAlt1);
+	MazePiecesAlt1.Add(MazeXAlt1);
+
+	MazePiecesAlt1;
+
 	depthFirstMaze();
-
 	for (int i = 0; i < 5; i++) {
-		GEngine->AddOnScreenDebugMessage(-1, 99.0f, FColor::White, FString::Printf(TEXT("%i %i %i %i %i"), maze[i][0], maze[i][1], maze[i][2], maze[i][3], maze[i][4]));
+		GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::White, FString::Printf(TEXT("%i %i %i %i %i"), maze[i][0], maze[i][1], maze[i][2], maze[i][3], maze[i][4]));
 	}
-
 	DFMtoUnreal();
-
-
-
 }
 
 //vector<vector<int>> AGameModeCPP::DepthFirstMaze(int size
@@ -294,10 +307,13 @@ void AGameModeCPP::DFMtoUnreal()
 	FVector spawnLocation = FVector(0.f, 0.f, 0.f); //spawn at 0,0,0
 	float realX = 0.f;
 	float realY = 0.f;
+	AActor* pieceToAdd;
 
 	//2000 x 2000 is the real size of the grids
-
-
+	//AllMazePieces
+		
+	//0 = C, 1 = I, 2 = L , 3 = N , 4 = T , 5 = X 
+	//MazePieces.Add(MazeC);
 
 	for (int i = 0; i < mazeSize; i++) {
 		for (int j = 0; j < mazeSize; j++) {
@@ -305,17 +321,25 @@ void AGameModeCPP::DFMtoUnreal()
 			spawnLocation = FVector(realX, realY, 0.f); //spawn at 0,0,0
 
 			if (maze[i][j] == 1) {
-				GetWorld()->SpawnActor<AActor>(MazeN, spawnLocation, rotator, spawnParams);
+
+				if (DiceRoll(ChanceForAlt1N))
+					pieceToAdd = GetWorld()->SpawnActor<AActor>(MazePiecesAlt1[3], spawnLocation, rotator, spawnParams);
+				else
+					pieceToAdd = GetWorld()->SpawnActor<AActor>(MazePieces[3], spawnLocation, rotator, spawnParams);
+					
+				AllMazePieces.Add(pieceToAdd);
 			}
 			else {
 				placePiece(i, j);
 				rotator = FRotator(0, pieceToRotate, 0);
-				GetWorld()->SpawnActor<AActor>(pieceToPlace, spawnLocation, rotator, spawnParams);
+				pieceToAdd =  GetWorld()->SpawnActor<AActor>(pieceToPlace, spawnLocation, rotator, spawnParams);
+				AllMazePieces.Add(pieceToAdd);
 			}
 			rotator = FRotator(0, 0, 0);
 			if (i == endX && j == endY) {
 				spawnLocation = FVector(realX, realY, 5.f);
-				GetWorld()->SpawnActor<AActor>(FlagBP, spawnLocation, rotator, spawnParams);
+				pieceToAdd = GetWorld()->SpawnActor<AActor>(FlagBP, spawnLocation, rotator, spawnParams);
+				AllMazePieces.Add(pieceToAdd);
 			}
 
 			realY = realY + 2000;
@@ -325,7 +349,8 @@ void AGameModeCPP::DFMtoUnreal()
 	}
 	rotator = FRotator(0, 0, 0);
 	spawnLocation = FVector(4000.f, 4000.f, 5.f);
-	GetWorld()->SpawnActor<AActor>(MazeFloor, spawnLocation, rotator, spawnParams);
+	pieceToAdd = GetWorld()->SpawnActor<AActor>(MazeFloor, spawnLocation, rotator, spawnParams);
+	AllMazePieces.Add(pieceToAdd);
 }
 
 void AGameModeCPP::placePiece(int x, int y)
@@ -360,13 +385,17 @@ void AGameModeCPP::placePiece(int x, int y)
 	//could use these to generate walls and not place pieces 
 	//am going to place pieces however as it allows for more design variation (different L pieces etc)
 	
-	switch (openWalls) {
+	switch (openWalls) { 	//0 = C, 1 = I, 2 = L , 3 = N , 4 = T , 5 = X 
 		case (0): { // no open walls
-			pieceToPlace = MazeN; //place filled block piece
+			pieceToPlace = MazePiecesAlt1[3]; //place filled block piece
 			break;
 		}
-		case (1): { // 1 open wall
-			pieceToPlace = MazeC; //1 open wall = C piece
+		case (1): { // 1 open wall 
+
+			if (DiceRoll(ChanceForAlt1C))
+				pieceToPlace = MazePiecesAlt1[0]; //1 open wall = C piece
+			else
+				pieceToPlace = MazePieces[0]; //1 open wall = C piece
 			if (west == false) pieceToRotate = 0;
 			else if (north == false) pieceToRotate = 90;
 			else if (east == false) pieceToRotate = 180;
@@ -376,11 +405,18 @@ void AGameModeCPP::placePiece(int x, int y)
 		case (2): { // 2 open walls
 
 			if ((north == true && south == true) || (west == true && east == true)) { 
-				pieceToPlace = MazeI; //2 open walls = either L or I
+				if (DiceRoll(ChanceForAlt1I))
+					pieceToPlace = MazePiecesAlt1[1]; 
+				else
+					pieceToPlace = MazePieces[1]; 			
 				if (west == true) pieceToRotate = 90;
 			}
 			else { //bottom and right are open by default rotation
-				pieceToPlace = MazeL; //2 
+				if (DiceRoll(ChanceForAlt1L))
+					pieceToPlace = MazePiecesAlt1[2]; 
+				else
+					pieceToPlace = MazePieces[2];
+
 				if (north == true && east == true) pieceToRotate = 0;
 				else if (east == true && south == true) pieceToRotate = 90;
 				else if (south == true && west == true) pieceToRotate = 180;
@@ -389,8 +425,11 @@ void AGameModeCPP::placePiece(int x, int y)
 			break;
 		}
 		case (3): { // 3 open walls
-			pieceToPlace = MazeT; //3 open walls = T piece
-			//left wall closed
+			if (DiceRoll(ChanceForAlt1T))
+				pieceToPlace = MazePiecesAlt1[4]; 
+			else
+				pieceToPlace = MazePieces[4]; 
+											  //left wall closed
 			if (north == true) pieceToRotate = 0; 
 			else if (east == true) pieceToRotate = 90; 
 			else if (south == true) pieceToRotate = 180;
@@ -399,13 +438,35 @@ void AGameModeCPP::placePiece(int x, int y)
 			break;
 		}
 		case (4): { // 4 open walls
-			pieceToPlace = MazeX; //4 open walls = X piece
+			if (DiceRoll(ChanceForAlt1X))
+				pieceToPlace = MazePiecesAlt1[5];
+			else
+				pieceToPlace = MazePieces[5]; 
 			break;
 		}
 	}
 	
 
 }
+
+void AGameModeCPP::resetDFM()
+{
+	for (int i = 0; i != AllMazePieces.Num(); ++i)
+	{
+		AllMazePieces[i]->Destroy();
+	}
+	AllMazePieces.Reset();
+	MazeGenerationBegin();
+}
+
+bool AGameModeCPP::DiceRoll(int percentage)
+{
+	if (percentage == 0) {
+		return false;
+	}
+	return (FMath::RandRange(1, 100 / percentage) == 1 ? true : false);
+}
+
 
 
 void AGameModeCPP::oldDepthFirstMaze(int size)

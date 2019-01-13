@@ -133,7 +133,7 @@ public:
 	FTimerHandle flagTimer;
 
 	void canSetShootMethod();
-	void flagTimerMethod();
+	void RespawnPlayer();
 
 	bool slowMoving;
 
@@ -173,5 +173,6 @@ public:
 
 	void SetNextFlag(FVector location);
 	void RestartPressed();
+	bool IsItNewLevel = false;
 }
 ;

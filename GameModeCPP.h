@@ -23,30 +23,72 @@ protected:
 
 	//UPROPERTY(EditAnywhere)
 	//	TSubclassOf<class AController> PlayerController
+	
+	//Maze 1
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = Maze1)
 		TSubclassOf<class AActor> MazeN;
 	
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = Maze1)
 		TSubclassOf<class AActor> MazeC;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = Maze1)
 		TSubclassOf<class AActor> MazeL;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = Maze1)
 		TSubclassOf<class AActor> MazeI;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = Maze1)
 		TSubclassOf<class AActor> MazeT;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = Maze1)
 		TSubclassOf<class AActor> MazeX;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = Maze1)
 		TSubclassOf<class AActor> MazeFloor;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = Maze1)
 		TSubclassOf<class AActor> FlagBP;
+
+	//Maze 2 (Curved)
+
+	UPROPERTY(EditAnywhere, Category = MazeAlt1)
+		TSubclassOf<class AActor> MazeNAlt1;
+
+	UPROPERTY(EditAnywhere, Category = MazeAlt1)
+		TSubclassOf<class AActor> MazeCAlt1;
+
+	UPROPERTY(EditAnywhere, Category = MazeAlt1)
+		TSubclassOf<class AActor> MazeLAlt1;
+
+	UPROPERTY(EditAnywhere, Category = MazeAlt1)
+		TSubclassOf<class AActor> MazeIAlt1;
+
+	UPROPERTY(EditAnywhere, Category = MazeAlt1)
+		TSubclassOf<class AActor> MazeTAlt1;
+
+	UPROPERTY(EditAnywhere, Category = MazeAlt1)
+		TSubclassOf<class AActor> MazeXAlt1;
+
+	UPROPERTY(EditAnywhere, Category = MazeAlt1Chance, meta = (ClampMin = "0", ClampMax = "100", UIMin = "0", UIMax = "100"))
+		int ChanceForAlt1N;
+
+	UPROPERTY(EditAnywhere, Category = MazeAlt1Chance, meta = (ClampMin = "0", ClampMax = "100", UIMin = "0", UIMax = "100"))
+		int ChanceForAlt1C;
+
+	UPROPERTY(EditAnywhere, Category = MazeAlt1Chance, meta = (ClampMin = "0", ClampMax = "100", UIMin = "0", UIMax = "100"))
+		int ChanceForAlt1L;
+
+	UPROPERTY(EditAnywhere, Category = MazeAlt1Chance, meta = (ClampMin = "0", ClampMax = "100", UIMin = "0", UIMax = "100"))
+		int ChanceForAlt1I;
+
+	UPROPERTY(EditAnywhere, Category = MazeAlt1Chance, meta = (ClampMin = "0", ClampMax = "100", UIMin = "0", UIMax = "100"))
+		int ChanceForAlt1T;
+
+	UPROPERTY(EditAnywhere, Category = MazeAlt1Chance, meta = (ClampMin = "0", ClampMax = "100", UIMin = "0", UIMax = "100"))
+		int ChanceForAlt1X;
+
+
 
 public:
 
@@ -63,12 +105,18 @@ public:
 	float endX;
 	float endY;
 
+	TArray<AActor*> AllMazePieces;
+
+	TArray<TSubclassOf<AActor>> MazePieces;
+	TArray<TSubclassOf<AActor>> MazePiecesAlt1;
 
 	//static int mazeSize = 5;
 	int maze[mazeSize][mazeSize];
 	//int pathLength;
 	bool deadEndHit = false;
-	bool noDeadEndsAllowed = false;
+
+	UPROPERTY(EditAnywhere)
+	bool noDeadEndsAllowed;
 
 	//vector<vector<int>> DepthFirstMaze(int size);
 	void oldDepthFirstMaze(int size);
@@ -92,7 +140,8 @@ public:
 	void placePiece(int x, int y);
 	TSubclassOf<class AActor> pieceToPlace = MazeN; //by default place a solid block
 	int pieceToRotate = 0; //rotation is 0 by default
-
-
+	void resetDFM();
+	bool DiceRoll(int percentage);
+	
 };
 
