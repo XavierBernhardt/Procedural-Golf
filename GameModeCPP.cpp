@@ -27,6 +27,7 @@ void AGameModeCPP::InitGameState()
 	AGameState* MyGameState = Cast<AGameState>(GameState);
 	if (MyGameState)
 	{
+		if (DrawDebugText)
 		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, TEXT("InitState"));
 
 		FString LevelName = GetWorld()->GetMapName();
@@ -36,14 +37,20 @@ void AGameModeCPP::InitGameState()
 
 
 		if (LevelName.Equals("MazeGeneration")) {
+			if (DrawDebugText)
 			GEngine->AddOnScreenDebugMessage(110, 99.f, FColor::Cyan, TEXT("Current Level: Maze Generation"));
 			MazeGenerationBegin();
 		}
 		else if (LevelName.Equals("ControlMap")) {
+			if (DrawDebugText)
 			GEngine->AddOnScreenDebugMessage(110, 99.f, FColor::Cyan, TEXT("Current Level: Control Map"));
 			
 		}
-
+		if (LevelName.Equals("SnakeGeneration")) {
+			if (DrawDebugText)
+				GEngine->AddOnScreenDebugMessage(110, 99.f, FColor::Cyan, TEXT("Current Level: Snake Generation"));
+			SnakeGenerationBegin();
+		}
 		//CurrentHole = 0;
 
 		////Code to fill the locations of each starting point
@@ -128,10 +135,67 @@ void AGameModeCPP::MazeGenerationBegin()
 	MazePiecesAlt1;
 
 	depthFirstMaze();
-	for (int i = 0; i < 5; i++) {
-		GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::White, FString::Printf(TEXT("%i %i %i %i %i"), maze[i][0], maze[i][1], maze[i][2], maze[i][3], maze[i][4]));
+	if (DrawDebugText) {
+		for (int i = 0; i < 5; i++) {
+			GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::White, FString::Printf(TEXT("%i %i %i %i %i"), maze[i][0], maze[i][1], maze[i][2], maze[i][3], maze[i][4]));
+		}
 	}
+
 	DFMtoUnreal();
+}
+
+void AGameModeCPP::SnakeGenerationBegin()
+{
+	MazePieces.Add(MazeC);
+	MazePieces.Add(MazeI);
+	MazePieces.Add(MazeL);
+	MazePieces.Add(MazeN);
+	MazePieces.Add(MazeT);
+	MazePieces.Add(MazeX);
+
+	MazePiecesAlt1.Add(MazeCAlt1);
+	MazePiecesAlt1.Add(MazeIAlt1);
+	MazePiecesAlt1.Add(MazeLAlt1);
+	MazePiecesAlt1.Add(MazeNAlt1);
+	MazePiecesAlt1.Add(MazeTAlt1);
+	MazePiecesAlt1.Add(MazeXAlt1);
+
+	GenerateSnakeMaze();
+}
+void AGameModeCPP::GenerateSnakeMaze()
+{
+	FActorSpawnParameters spawnParams;
+	spawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+	float realX = 0.f;
+	float realY = 0.f;
+	FRotator rotator = FRotator(0, 0, 0); 
+	FVector spawnLocation = FVector(realX, realY, 0.f);
+
+	AActor* pieceToAdd;
+
+
+	if (DiceRoll(ChanceForAlt1C))
+		pieceToPlace = MazePiecesAlt1[0]; //1 open wall = C piece
+	else
+		pieceToPlace = MazePieces[0]; //1 open wall = C piece
+
+	pieceToAdd = GetWorld()->SpawnActor<AActor>(pieceToPlace, spawnLocation, rotator, spawnParams);
+	AllMazePieces.Add(pieceToAdd);
+
+
+	realY = realY + 2000;
+
+	spawnLocation = FVector(realX, realY, 0.f);
+
+	if (DiceRoll(ChanceForAlt1C))
+		pieceToPlace = MazePiecesAlt1[0]; //1 open wall = C piece
+	else
+		pieceToPlace = MazePieces[0]; //1 open wall = C piece
+
+	pieceToAdd = GetWorld()->SpawnActor<AActor>(pieceToPlace, spawnLocation, FRotator(0, 180, 0), spawnParams);
+	AllMazePieces.Add(pieceToAdd);
+
 }
 
 //vector<vector<int>> AGameModeCPP::DepthFirstMaze(int size
@@ -139,6 +203,7 @@ void AGameModeCPP::MazeGenerationBegin()
 
 int AGameModeCPP::generateMaze(int r, int c)
 {
+	if (DrawDebugText)
 	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::White, FString::Printf(TEXT("Recursive generateMaze function called")));
 
 
@@ -166,7 +231,7 @@ int AGameModeCPP::generateMaze(int r, int c)
 			if (maze[r - 2][c] != 0) {
 				maze[r - 2][c] = 0;
 				maze[r - 1][c] = 0;
-				endX = r;
+				endX = r-2;
 				endY = c;
 				generateMaze(r - 2, c);
 			}
@@ -180,7 +245,7 @@ int AGameModeCPP::generateMaze(int r, int c)
 				maze[r][c + 2] = 0;
 				maze[r][c + 1] = 0;
 				endX = r;
-				endY = c;
+				endY = c+2;
 				generateMaze(r, c + 2);
 			}
 			break;
@@ -192,7 +257,7 @@ int AGameModeCPP::generateMaze(int r, int c)
 			if (maze[r + 2][c] != 0) {
 				maze[r + 2][c] = 0;
 				maze[r + 1][c] = 0;
-				endX = r;
+				endX = r+2;
 				endY = c;
 				generateMaze(r + 2, c);
 			}
@@ -206,7 +271,7 @@ int AGameModeCPP::generateMaze(int r, int c)
 				maze[r][c - 2] = 0;
 				maze[r][c - 1] = 0;
 				endX = r;
-				endY = c;
+				endY = c-2;
 				generateMaze(r, c - 2);
 			}
 		}
@@ -238,6 +303,7 @@ void AGameModeCPP::printMaze()
 
 void AGameModeCPP::depthFirstMaze()
 {
+	if (DrawDebugText)
 	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::White, FString::Printf(TEXT("**DepthFirstMaze Begin**")));
 	cout << "Begin \n";
 	for (int i = 0; i < mazeSize; i++) {
@@ -292,7 +358,7 @@ void AGameModeCPP::depthFirstMaze()
 	maze[row][col] = 0;
 	startX = row * 2000;
 	startY = col * 2000;
-
+	if (DrawDebugText)
 	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Gamemode: StartX = %i  StartY = %i"), startX, startY));
 
 	generateMaze(row, col);
@@ -466,6 +532,7 @@ bool AGameModeCPP::DiceRoll(int percentage)
 	}
 	return (FMath::RandRange(1, 100 / percentage) == 1 ? true : false);
 }
+
 
 
 

@@ -97,6 +97,8 @@ public:
 	AGameModeCPP();
 
 	void MazeGenerationBegin(); //add in things like "nodeadends" here, etc.
+	void SnakeGenerationBegin();
+
 
 	static const int mazeSize = 5;
 	static const int pathLength = 9;
@@ -104,7 +106,7 @@ public:
 	float startY;
 	float endX;
 	float endY;
-
+	bool DrawDebugText = true;
 	TArray<AActor*> AllMazePieces;
 
 	TArray<TSubclassOf<AActor>> MazePieces;
@@ -143,5 +145,10 @@ public:
 	void resetDFM();
 	bool DiceRoll(int percentage);
 	
+	void GenerateSnakeMaze();
+	TArray<FVector> usedLocations;
+	int globalRotation = 0;
+	int localRotation = 0;
+	int trackLength = 10;
 };
 

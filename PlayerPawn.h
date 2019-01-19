@@ -72,6 +72,9 @@ public:
 	void ForceAddRelease();
 	void ForceRemoveRelease();
 
+	void UpdateHUDStrings();
+	UPROPERTY(Category = Display, VisibleDefaultsOnly, BlueprintReadOnly)
+		FText ForceDisplayString;
 
 	//void RotateCameraCW();
 	//void RotateCameraCCW();
@@ -134,7 +137,7 @@ public:
 
 	void canSetShootMethod();
 	void RespawnPlayer();
-
+	int shotsTaken = 0;
 	bool slowMoving;
 
 	UFUNCTION()
@@ -174,5 +177,11 @@ public:
 	void SetNextFlag(FVector location);
 	void RestartPressed();
 	bool IsItNewLevel = false;
+
+	bool DrawDebugText = false;
+	bool DrawFlagHitText = false;
+
+	FVector LastSafeLocation;
+
 }
 ;

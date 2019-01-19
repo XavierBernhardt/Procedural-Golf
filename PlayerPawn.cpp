@@ -29,6 +29,7 @@
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
 #include "Runtime/Engine/Classes/GameFramework/PlayerController.h"
 #include "IceActor.h"
+#include "WaterActor.h"
 #include "SpringboardActor.h"
 #include "GameModeCPP.h"
 #include "FlagActor.h"
@@ -124,6 +125,7 @@ APlayerPawn::APlayerPawn()
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 	//FollowCamera->RelativeRotation = FRotator(-45.f, 0.f, 0.f);
 
+	UpdateHUDStrings();
 
 }
 
@@ -133,7 +135,7 @@ void APlayerPawn::BeginPlay()
 
 	Super::BeginPlay();
 
-
+	if (DrawDebugText)
 	GEngine->AddOnScreenDebugMessage(100, 5.0f, FColor::White, TEXT("Begin"));
 
 	FindComponentByClass<USphereComponent>()->OnComponentBeginOverlap.AddDynamic(this, &APlayerPawn::OnOverlap);
@@ -155,12 +157,24 @@ void APlayerPawn::BeginPlay()
 void APlayerPawn::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	if (canShoot) {
-		GEngine->AddOnScreenDebugMessage(77, 99.0f, FColor::White, FString::Printf(TEXT("CanShoot=True")));
-	}
-	else {
-		GEngine->AddOnScreenDebugMessage(77, 99.0f, FColor::White, FString::Printf(TEXT("CanShoot=False")));
-	}
+
+	if (DrawDebugText)
+	{
+		if (canShoot) {
+			GEngine->AddOnScreenDebugMessage(77, 99.0f, FColor::White, FString::Printf(TEXT("CanShoot=True")));
+		}
+		else {
+			GEngine->AddOnScreenDebugMessage(77, 99.0f, FColor::White, FString::Printf(TEXT("CanShoot=False")));
+		}
+		GEngine->AddOnScreenDebugMessage(70, 99.0f, FColor::White, FString::Printf(TEXT("Velocity=%s"), *(GetVelocity().ToString())));
+		GEngine->AddOnScreenDebugMessage(71, 99.0f, FColor::White, FString::Printf(TEXT("Rotation=%s"), *(GetActorRotation().ToString())));
+		GEngine->AddOnScreenDebugMessage(73, 99.0f, FColor::White, FString::Printf(TEXT("Location=%s"), *(GetActorLocation().ToString())));
+		GEngine->AddOnScreenDebugMessage(72, 99.0f, FColor::White, FString::Printf(TEXT("Shoot Direction=%s"), *(shootDirection.ToString())));
+		GEngine->AddOnScreenDebugMessage(201, 0.01f, FColor::Blue, FString::Printf(TEXT("Angluar/Linear Damping=%f"), Ball->GetAngularDamping()));
+	
+	
+	}	
+
 	//Neat trail accidentally made haha
 	//FVector forwards = GetActorForwardVector() * 10;
 	//DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation() + forwards, FColor(255, 0, 0), false, 1.0f, 0, 12.333);
@@ -179,10 +193,7 @@ void APlayerPawn::Tick(float DeltaTime)
 		//DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation() + forwards, FColor(255, 0, 0), false, 0.01f, 0, 12.333);
 
 
-	GEngine->AddOnScreenDebugMessage(70, 99.0f, FColor::White, FString::Printf(TEXT("Velocity=%s"), *(GetVelocity().ToString())));
-	GEngine->AddOnScreenDebugMessage(71, 99.0f, FColor::White, FString::Printf(TEXT("Rotation=%s"), *(GetActorRotation().ToString())));
-	GEngine->AddOnScreenDebugMessage(72, 99.0f, FColor::White, FString::Printf(TEXT("Shoot Direction=%s"), *(shootDirection.ToString())));
-	GEngine->AddOnScreenDebugMessage(72, 99.0f, FColor::White, FString::Printf(TEXT("Zooming=%i"), cameraZooming));
+
 
 	FVector stopVelocity = FVector(0.f, 0.f, 0.f);
 
@@ -192,11 +203,13 @@ void APlayerPawn::Tick(float DeltaTime)
 	}
 
 	if (slowMoving) {
+		if (DrawDebugText)
 		GEngine->AddOnScreenDebugMessage(200, 0.01f, FColor::Red, FString::Printf(TEXT("SlowMoving = true")));
 		Ball->SetAngularDamping(15.f);
 		Ball->SetLinearDamping(15.f);
 	}
 	else {
+		if (DrawDebugText)
 		GEngine->AddOnScreenDebugMessage(200, 0.01f, FColor::Green, FString::Printf(TEXT("SlowMoving = false")));
 		Ball->SetAngularDamping(realDamping);
 		Ball->SetLinearDamping(realDamping);
@@ -211,8 +224,16 @@ void APlayerPawn::Tick(float DeltaTime)
 			slowMoving = true;
 		}
 	}
-	GEngine->AddOnScreenDebugMessage(201, 0.01f, FColor::Blue, FString::Printf(TEXT("Angluar/Linear Damping=%f"), Ball->GetAngularDamping()));
 
+	if (GetActorLocation().Z < -500) {
+		SetActorLocation(LastSafeLocation);
+		slowMoving = true;
+		Ball->SetLinearDamping(100);
+		Ball->SetAngularDamping(100);
+		canSetShoot = true;
+		canShoot = false;
+		touchedFlag = false;
+	}
 
 	//FVector worldrotation = GetActorRotation().Vector();
 	//AddMovementInput(worldrotation, 10.f, false);
@@ -235,6 +256,7 @@ void APlayerPawn::Tick(float DeltaTime)
 		if (force < minForce) {
 			force = minForce;
 		}
+		UpdateHUDStrings();
 	}
 
 
@@ -358,12 +380,14 @@ void APlayerPawn::RotateCCWRelease()
 void APlayerPawn::ForceAdd()
 {
 	incrementForce = 20;
+	if (DrawDebugText)
 	GEngine->AddOnScreenDebugMessage(103, 0.5f, FColor::White, TEXT("ForceAdd"));
 }
 
 void APlayerPawn::ForceRemove()
 {
 	incrementForce = -20;
+	if (DrawDebugText)
 	GEngine->AddOnScreenDebugMessage(104, 0.5f, FColor::White, TEXT("ForceRemove"));
 }
 
@@ -372,6 +396,7 @@ void APlayerPawn::ForceAddRelease()
 	if (incrementForce > 0) {
 		incrementForce = 0;
 	}
+	UpdateHUDStrings();
 }
 
 void APlayerPawn::ForceRemoveRelease()
@@ -379,6 +404,16 @@ void APlayerPawn::ForceRemoveRelease()
 	if (incrementForce < 0) {
 		incrementForce = 0;
 	}
+	UpdateHUDStrings();
+}
+
+void APlayerPawn::UpdateHUDStrings()
+{
+	#define LOCTEXT_NAMESPACE "PlayerPawn"
+
+	ForceDisplayString = FText::Format(LOCTEXT("ForceFormat", "Power: {0}"), FText::AsNumber(FMath::FloorToInt(force)));
+
+
 }
 
 
@@ -386,10 +421,12 @@ void APlayerPawn::ForceRemoveRelease()
 void APlayerPawn::Shoot()
 {
 	if (canShoot) {
+		if (DrawDebugText)
 		GEngine->AddOnScreenDebugMessage(105, 0.5f, FColor::White, TEXT("Shooting"));
 
+		LastSafeLocation = GetActorLocation();
 		float trueForce = force * 100000;
-
+		shotsTaken ++;
 		FVector forwards = shootDirection.Vector() * trueForce;
 		FVector impulse = GetActorRotation().Vector() + forwards;
 		//const FVector Impulse = FVector(0.f, force, 0.f);
@@ -411,19 +448,25 @@ void APlayerPawn::canSetShootMethod()
 void APlayerPawn::RespawnPlayer()
 {
 	AGameModeCPP * GameModeCPP = Cast<AGameModeCPP>(UGameplayStatics::GetGameMode(GetWorld()));
-
+	DrawFlagHitText = false;
+	shotsTaken = 0;
 	if (GameModeCPP != nullptr) {
+		if (DrawDebugText)
 		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Player: StartX = %i  StartY = %i"), GameModeCPP->startX, GameModeCPP->startY));
 		if (IsItNewLevel) {
 			GameModeCPP->resetDFM();
+			CurrentHole++;
 			IsItNewLevel = false;
 		}
 		SetNextFlag(FVector(GameModeCPP->startX , GameModeCPP->startY , 10.f));
 	}
-	else
-		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, FString::Printf(TEXT("Gamemode not found.")));
+	else {
+		if (DrawDebugText)	
+			GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, FString::Printf(TEXT("Gamemode not found.")));
+	}
 	   
 	SetActorLocation(NextFlag);
+	LastSafeLocation = NextFlag;
 	slowMoving = false;
 	canSetShoot = true;
 	touchedFlag = false;
@@ -444,11 +487,23 @@ void APlayerPawn::OnOverlap(UPrimitiveComponent * HitComp, AActor * OtherActor, 
 		Ball->SetAngularDamping(realDamping);
 		Ball->SetLinearDamping(realDamping);
 	}
+	if (Cast<AWaterActor>(OtherActor)) {
+		SetActorLocation(LastSafeLocation);
+		slowMoving = true;
+		Ball->SetLinearDamping(100);
+		Ball->SetAngularDamping(100);
+		canSetShoot = true;
+		canShoot = false;
+		touchedFlag = false;
+		//GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::White, FString::Printf(TEXT("Overlap with ice begun")));
+
+	}
 	if (Cast<ASpringboardActor>(OtherActor)) {
 
 		if ((Ball->GetPhysicsLinearVelocity().X < slowValue) && (Ball->GetPhysicsLinearVelocity().X > -slowValue) &&
 			(Ball->GetPhysicsLinearVelocity().Y < slowValue) && (Ball->GetPhysicsLinearVelocity().Y > -slowValue)) {}
 		else{
+			if (DrawDebugText)
 			GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Purple, FString::Printf(TEXT("Jumping")));
 			const FVector Impulse = FVector(0.f, 0.f, JumpImpulse);
 			Ball->AddImpulse(Impulse);
@@ -456,7 +511,9 @@ void APlayerPawn::OnOverlap(UPrimitiveComponent * HitComp, AActor * OtherActor, 
 	}
 	if (Cast<AFlagActor>(OtherActor)) {
 		if (!touchedFlag) {
+			if (DrawDebugText)
 			GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Purple, FString::Printf(TEXT("Touched Flag")));
+			DrawFlagHitText = true;
 			touchedFlag = true;
 			slowMoving = true;
 			canShoot = false;
@@ -488,6 +545,7 @@ void APlayerPawn::OnOverlapEnd(UPrimitiveComponent * OverlappedComp, AActor * Ot
 void APlayerPawn::OnHit(UPrimitiveComponent * HitComp, AActor * OtherActor, UPrimitiveComponent * OtherComp, FVector NormalImpulse, const FHitResult & Hit)
 {
 	if (Cast<AIceActor>(OtherActor)) {
+		if (DrawDebugText)
 		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, FString::Printf(TEXT("Hitting ice")));
 	}
 }
@@ -533,6 +591,7 @@ void APlayerPawn::LookUpAtRate(float Rate)
 			CameraBoom->TargetArmLength = 300;
 		}
 	}
+	UpdateHUDStrings();
 
 }
 
@@ -643,6 +702,7 @@ void APlayerPawn::SetNextFlag(FVector location)
 
 void APlayerPawn::RestartPressed() {
 	GEngine->ClearOnScreenDebugMessages();
+	if (DrawDebugText)
 	GEngine->AddOnScreenDebugMessage(105, 3.0f, FColor::Green, FString::Printf(TEXT("RESTARTING")));
 	UGameplayStatics::OpenLevel(this, FName(*GetWorld()->GetName()), false);
 }
