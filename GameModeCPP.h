@@ -134,7 +134,7 @@ public:
 	//float z[8]; //z of spawn
 	//float r[8]; //yaw rotation of spawn
 	int generateMaze(int r, int c);
-	void printMaze();
+	void PrintMaze();
 	void depthFirstMaze();
 	void DFMtoUnreal();
 	int row, col;
@@ -146,10 +146,45 @@ public:
 	bool DiceRoll(int percentage);
 	
 	void GenerateSnakeMaze();
-	TArray<FVector> usedLocations;
-	FVector currentLocation = FVector(0, 0, 0);
-	int globalRotation = 0;
-	int localRotation = 0;
-	int trackLength = 3;
+
+	//TArray<FVector> usedLocations;
+	//FVector currentLocation = FVector(0, 0, 0);
+	//int globalRotation = 0;
+	//int localRotation = 0;
+	//int trackLength = 3;
+
+
+	//coordinate struct
+	struct crd {
+		int x, y; //x, y = coordinates
+		int d;	//	d = direction , -1 = left , 0 = up , 1 = right
+		//d can be inferred from the previous entry in the array, however it's just easier to store it as a value.
+		// - > it takes little space to store it vs setting up a method to deduce where it came from
+
+		//could create real map back to front using the vector as a stack?
+		/*
+			ignore below
+		bool n, e, s, w; //walls
+		crd() :	x(0), //set to 0,0 by default
+				y(0),
+				n(true), //give it solid walls by default
+				e(true),
+				s(true),
+				w(true) {}
+		*/
+	};
+
+	//initiate variables
+	int curX; //current x
+	int curY; //current y
+	int trackLength; //total amount of spaces to check
+	crd checkCrd; //coordinate we want to move to
+	std::vector<crd> crdList; //vector to hold coordinates
+
+	//search through crdlist for a crd
+	bool Exists(crd toFind);
+	void SnakeToUnreal();
+
+
 };
 

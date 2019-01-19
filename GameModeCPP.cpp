@@ -146,6 +146,9 @@ void AGameModeCPP::MazeGenerationBegin()
 
 void AGameModeCPP::SnakeGenerationBegin()
 {
+	if (DrawDebugText)
+		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::White, FString::Printf(TEXT("Snake Gen Begin")));
+
 	MazePieces.Add(MazeC);
 	MazePieces.Add(MazeI);
 	MazePieces.Add(MazeL);
@@ -291,149 +294,164 @@ void AGameModeCPP::SnakeGenerationBegin()
 //
 //	}
 
-void AGameModeCPP::GenerateSnakeMaze()
+//void AGameModeCPP::GenerateSnakeMazeOld2()
+//{
+//	if (DrawDebugText)
+//		GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::White, FString::Printf(TEXT("Generating Snake Maze")));
+//
+//	FActorSpawnParameters spawnParams;
+//	spawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+//
+//	float realX = 0.f;
+//	float realY = 0.f;
+//	FRotator rotator = FRotator(0, 270, 0);
+//	FVector spawnLocation = FVector(realX, realY, 0.f);
+//
+//	AActor* pieceToAdd;
+//
+//
+//	if (DiceRoll(ChanceForAlt1C))
+//		pieceToPlace = MazePiecesAlt1[0];
+//	else
+//		pieceToPlace = MazePieces[0];
+//
+//	pieceToAdd = GetWorld()->SpawnActor<AActor>(pieceToPlace, spawnLocation, rotator, spawnParams);
+//	AllMazePieces.Add(pieceToAdd);
+//	usedLocations.Add(currentLocation);
+//
+//	realY = realY + 2000;
+//	spawnLocation = FVector(realX, realY, 0.f);
+//	pieceToAdd = GetWorld()->SpawnActor<AActor>(MazeI, spawnLocation, FRotator(0, 90, 0), spawnParams);
+//	AllMazePieces.Add(pieceToAdd);
+//
+//
+//	//if (DiceRoll(ChanceForAlt1C))
+//	//	pieceToPlace = MazePiecesAlt1[0]; //1 open wall = C piece
+//	//else
+//	//	pieceToPlace = MazePieces[0]; //1 open wall = C piece
+//
+//
+//
+//
+//	for (int i = 0; i < trackLength; i++) {
+//		if (DrawDebugText)
+//			GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::White, FString::Printf(TEXT("Loop Start")));
+//
+//		int randDirs[3] = { -1, 0, 1 }; //left , straight , right
+//		std::random_shuffle(&randDirs[0], &randDirs[3]); //randomise the order they're checked in
+//
+//		if (DrawDebugText)
+//			GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::White, FString::Printf(TEXT("Random order is: %i %i %i"), randDirs[0], randDirs[1], randDirs[2]));
+//
+//
+//		FVector checkLocation = FVector(realX, realY, 0.f);
+//
+//		for (int i = 0; i < 3; i++) {
+//			switch (randDirs[i]) {
+//			case -1: // Left
+//
+//				if (DrawDebugText)
+//					GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::White, FString::Printf(TEXT("Checking LEFT")));
+//				checkLocation = FVector(realX + 2000, realY, 0.f);
+//				if (usedLocations.Find(checkLocation) == INDEX_NONE) {
+//					if (DrawDebugText)
+//						GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::White, FString::Printf(TEXT("Location safe, moving left...")));
+//					realX = realX + 2000;
+//					spawnLocation = FVector(realX, realY, 0.f);
+//
+//					pieceToAdd = GetWorld()->SpawnActor<AActor>(MazeL, spawnLocation, FRotator(0, 180, 0), spawnParams);
+//					AllMazePieces.Add(pieceToAdd);
+//					usedLocations.Add(spawnLocation);
+//					break;
+//				}
+//				else {
+//					if (DrawDebugText)
+//						GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::White, FString::Printf(TEXT("Location bad (left)")));
+//					continue;
+//				}
+//				break;
+//
+//			case 0: // Straight
+//
+//				if (DrawDebugText)
+//					GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::White, FString::Printf(TEXT("Checking STRAIGHT")));
+//				checkLocation = FVector(realX, realY + 2000, 0.f);
+//				if (usedLocations.Find(checkLocation) == INDEX_NONE) {
+//					if (DrawDebugText)
+//						GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::White, FString::Printf(TEXT("Location safe, moving straight...")));
+//					realY = realY + 2000;
+//					spawnLocation = FVector(realX, realY, 0.f);
+//					pieceToAdd = GetWorld()->SpawnActor<AActor>(MazeI, spawnLocation, FRotator(0, 90, 0), spawnParams);
+//					AllMazePieces.Add(pieceToAdd);
+//					usedLocations.Add(spawnLocation);
+//					break;
+//				}
+//				else {
+//					if (DrawDebugText)
+//						GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::White, FString::Printf(TEXT("Location bad (straight)")));
+//					continue;
+//				}
+//				break;
+//
+//			case 1: // Right
+//
+//				if (DrawDebugText)
+//					GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::White, FString::Printf(TEXT("Checking RIGHT")));
+//				checkLocation = FVector(realX - 2000, realY, 0.f);
+//				if (usedLocations.Find(checkLocation) == INDEX_NONE) {
+//					if (DrawDebugText)
+//						GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::White, FString::Printf(TEXT("Location safe, moving right...")));
+//					realX = realX - 2000;
+//					spawnLocation = FVector(realX, realY, 0.f);
+//
+//					pieceToAdd = GetWorld()->SpawnActor<AActor>(MazeL, spawnLocation, FRotator(0, 180, 0), spawnParams);
+//					AllMazePieces.Add(pieceToAdd);
+//					usedLocations.Add(spawnLocation);
+//					break;
+//				}
+//				else {
+//					if (DrawDebugText)
+//						GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::White, FString::Printf(TEXT("Location bad (right)")));
+//					continue;
+//				}
+//				break;
+//
+//
+//			}
+//		}
+//
+//
+//	}
+//
+//	//realY = realY + 2000;
+//	//spawnLocation = FVector(realX, realY, 0.f);
+//
+//
+//
+//	//if (DiceRoll(ChanceForAlt1C))
+//	//	pieceToPlace = MazePiecesAlt1[0]; //1 open wall = C piece
+//	//else
+//	//	pieceToPlace = MazePieces[0]; //1 open wall = C piece
+//
+//	//pieceToAdd = GetWorld()->SpawnActor<AActor>(pieceToPlace, spawnLocation, FRotator(0, 90, 0), spawnParams);
+//	//AllMazePieces.Add(pieceToAdd);
+//
+//}
+
+bool AGameModeCPP::Exists(crd toFind)
 {
-	if (DrawDebugText)
-		GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::White, FString::Printf(TEXT("Generating Snake Maze")));
-
-	FActorSpawnParameters spawnParams;
-	spawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-
-	float realX = 0.f;
-	float realY = 0.f;
-	FRotator rotator = FRotator(0, 270, 0);
-	FVector spawnLocation = FVector(realX, realY, 0.f);
-
-	AActor* pieceToAdd;
-
-
-	if (DiceRoll(ChanceForAlt1C))
-		pieceToPlace = MazePiecesAlt1[0];
-	else
-		pieceToPlace = MazePieces[0];
-
-	pieceToAdd = GetWorld()->SpawnActor<AActor>(pieceToPlace, spawnLocation, rotator, spawnParams);
-	AllMazePieces.Add(pieceToAdd);
-	usedLocations.Add(currentLocation);
-
-	realY = realY + 2000;
-	spawnLocation = FVector(realX, realY, 0.f);
-	pieceToAdd = GetWorld()->SpawnActor<AActor>(MazeI, spawnLocation, FRotator(0, 90, 0), spawnParams);
-	AllMazePieces.Add(pieceToAdd);
-
-
-	//if (DiceRoll(ChanceForAlt1C))
-	//	pieceToPlace = MazePiecesAlt1[0]; //1 open wall = C piece
-	//else
-	//	pieceToPlace = MazePieces[0]; //1 open wall = C piece
-
-
-
-
-	for (int i = 0; i < trackLength; i++) {
-		if (DrawDebugText)
-			GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::White, FString::Printf(TEXT("Loop Start")));
-
-		int randDirs[3] = { -1, 0, 1 }; //left , straight , right
-		std::random_shuffle(&randDirs[0], &randDirs[3]); //randomise the order they're checked in
-
-		if (DrawDebugText)
-			GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::White, FString::Printf(TEXT("Random order is: %i %i %i"), randDirs[0], randDirs[1], randDirs[2]));
-
-
-		FVector checkLocation = FVector(realX, realY, 0.f);
-
-		for (int i = 0; i < 3; i++) {
-			switch (randDirs[i]) {
-			case -1: // Left
-
-				if (DrawDebugText)
-					GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::White, FString::Printf(TEXT("Checking LEFT")));
-				checkLocation = FVector(realX + 2000, realY, 0.f);
-				if (usedLocations.Find(checkLocation) == INDEX_NONE) {
-					if (DrawDebugText)
-						GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::White, FString::Printf(TEXT("Location safe, moving left...")));
-					realX = realX + 2000;
-					spawnLocation = FVector(realX, realY, 0.f);
-
-					pieceToAdd = GetWorld()->SpawnActor<AActor>(MazeL, spawnLocation, FRotator(0, 180, 0), spawnParams);
-					AllMazePieces.Add(pieceToAdd);
-					usedLocations.Add(spawnLocation);
-					break;
-				}
-				else {
-					if (DrawDebugText)
-						GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::White, FString::Printf(TEXT("Location bad (left)")));
-					continue;
-				}
-				break;
-
-			case 0: // Straight
-
-				if (DrawDebugText)
-					GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::White, FString::Printf(TEXT("Checking STRAIGHT")));
-				checkLocation = FVector(realX, realY + 2000, 0.f);
-				if (usedLocations.Find(checkLocation) == INDEX_NONE) {
-					if (DrawDebugText)
-						GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::White, FString::Printf(TEXT("Location safe, moving straight...")));
-					realY = realY + 2000;
-					spawnLocation = FVector(realX, realY, 0.f);
-					pieceToAdd = GetWorld()->SpawnActor<AActor>(MazeI, spawnLocation, FRotator(0, 90, 0), spawnParams);
-					AllMazePieces.Add(pieceToAdd);
-					usedLocations.Add(spawnLocation);
-					break;
-				}
-				else {
-					if (DrawDebugText)
-						GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::White, FString::Printf(TEXT("Location bad (straight)")));
-					continue;
-				}
-				break;
-
-			case 1: // Right
-
-				if (DrawDebugText)
-					GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::White, FString::Printf(TEXT("Checking RIGHT")));
-				checkLocation = FVector(realX - 2000, realY, 0.f);
-				if (usedLocations.Find(checkLocation) == INDEX_NONE) {
-					if (DrawDebugText)
-						GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::White, FString::Printf(TEXT("Location safe, moving right...")));
-					realX = realX - 2000;
-					spawnLocation = FVector(realX, realY, 0.f);
-
-					pieceToAdd = GetWorld()->SpawnActor<AActor>(MazeL, spawnLocation, FRotator(0, 180, 0), spawnParams);
-					AllMazePieces.Add(pieceToAdd);
-					usedLocations.Add(spawnLocation);
-					break;
-				}
-				else {
-					if (DrawDebugText)
-						GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::White, FString::Printf(TEXT("Location bad (right)")));
-					continue;
-				}
-				break;
-
-
-			}
+	std::cout << "Searching array... \n";
+	for (int i = 0; i < crdList.size(); i++) {
+		if ((crdList.at(i).x == toFind.x) && (crdList.at(i).y == toFind.y)) {
+			std::cout << "Coordinate is in use \n";
+			return true;
 		}
-
-
 	}
-
-	//realY = realY + 2000;
-	//spawnLocation = FVector(realX, realY, 0.f);
-
-
-
-	//if (DiceRoll(ChanceForAlt1C))
-	//	pieceToPlace = MazePiecesAlt1[0]; //1 open wall = C piece
-	//else
-	//	pieceToPlace = MazePieces[0]; //1 open wall = C piece
-
-	//pieceToAdd = GetWorld()->SpawnActor<AActor>(pieceToPlace, spawnLocation, FRotator(0, 90, 0), spawnParams);
-	//AllMazePieces.Add(pieceToAdd);
-
+	std::cout << "Coordinate not used \n";
+	return false;
 }
+
+
 
 //vector<vector<int>> AGameModeCPP::DepthFirstMaze(int size
 
@@ -447,7 +465,7 @@ int AGameModeCPP::generateMaze(int r, int c)
 	if (deadEndHit && noDeadEndsAllowed) {
 		return 0;
 	}
-	printMaze();
+	PrintMaze();
 	// 4 random directions
 	int randDirs[4];
 	cout << "\n generateMaze called \n";
@@ -527,7 +545,7 @@ int AGameModeCPP::generateMaze(int r, int c)
 	return 0;
 }
 
-void AGameModeCPP::printMaze()
+void AGameModeCPP::PrintMaze()
 {
 	for (int i = 0; i < mazeSize; i++) {
 		for (int j = 0; j < mazeSize; j++) {
@@ -599,7 +617,7 @@ void AGameModeCPP::depthFirstMaze()
 	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Gamemode: StartX = %i  StartY = %i"), startX, startY));
 
 	generateMaze(row, col);
-	printMaze();
+	PrintMaze();
 }
 
 void AGameModeCPP::DFMtoUnreal()
@@ -770,7 +788,141 @@ bool AGameModeCPP::DiceRoll(int percentage)
 	return (FMath::RandRange(1, 100 / percentage) == 1 ? true : false);
 }
 
+void AGameModeCPP::GenerateSnakeMaze()
+{
+	//initiate variables
+	curX = 0; //current x
+	curY = 0; //current y
+	trackLength = 10; //always ensure its above 2 total amount of spaces to check
+	checkCrd = crd{ 0,0 }; //coordinate we want to move to
+	srand(time(0)); //seed 
 
+	//mark 0,0 and 0,1 as taken (starting area and up one are taken by default)
+	crd newCoord{ curX, curY }; //first coord is always 0,0
+	crdList.emplace_back(newCoord);
+	curY++;
+	newCoord = crd{ curX, curY }; //move up y by 1 and make a coord there too
+	crdList.emplace_back(newCoord);
+
+	//place tracklength amount of tracks
+	for (int i = 0; i < trackLength - 2; i++) { //start placing tracks
+		if (DrawDebugText)
+			GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::White, FString::Printf(TEXT("Starting Loop")));
+		int randDirs[3] = { -1, 0, 1 }; //left , straight , right
+		std::random_shuffle(&randDirs[0], &randDirs[3]); //randomise the order they're checked in
+		if (DrawDebugText)
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::White, FString::Printf(TEXT("Random Order = %i , %i , %i"), randDirs[0], randDirs[1], randDirs[2]));
+
+		std::cout << "Random order = " << randDirs[0] << randDirs[1] << randDirs[2] << "\n";
+		bool endMe = false;
+
+		for (int i = 0; i < 3; i++) { //check the 3 directions
+			std::cout << "Checking directions \n";
+			if (DrawDebugText)
+				GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::White, FString::Printf(TEXT("Checking Directions")));
+			switch (randDirs[i]) {
+			case -1: // Left
+				if (endMe) break;
+				if (DrawDebugText)
+					GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::White, FString::Printf(TEXT("Checking Left")));
+				std::cout << "Checking left \n";
+				checkCrd = crd{ curX - 1,curY };
+				if (Exists(checkCrd)) //if there's no space to the left
+				{
+					if (DrawDebugText)
+						GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::White, FString::Printf(TEXT("Left Impossible")));
+					std::cout << "Left impossible \n";
+					continue; //try another direction
+				}
+				else {
+					if (DrawDebugText)
+						GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::White, FString::Printf(TEXT("Left Okay")));
+					std::cout << "Left is okay \n";
+					curX--; //move left
+					newCoord = crd{ curX, curY , -1 }; //move left 1 and add a new coord there
+					crdList.emplace_back(newCoord); //add it to the list
+					endMe = true;
+					break;
+				}
+
+			case 0: // Up
+				if (endMe) break;
+				if (DrawDebugText)
+					GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::White, FString::Printf(TEXT("Checking Up")));
+				std::cout << "Checking up \n";
+				checkCrd = crd{ curX,curY + 1 };
+				if (Exists(checkCrd)) //if there's no space to the left
+				{
+					if (DrawDebugText)
+						GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::White, FString::Printf(TEXT("Up Impossible")));
+					std::cout << "Up impossible \n";
+					continue; //try another direction
+				}
+				else {
+					if (DrawDebugText)
+						GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::White, FString::Printf(TEXT("Up Okay")));
+					std::cout << "Up is okay \n";
+					curY++; //move up
+					newCoord = crd{ curX, curY , 0 }; //move up 1 and add a new coord there
+					crdList.emplace_back(newCoord); //add it to the list
+					endMe = true;
+					break;
+				}
+			case 1: // Right
+				if (endMe) break;
+				if (DrawDebugText)
+					GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::White, FString::Printf(TEXT("Checking Right")));
+				std::cout << "Checking right \n";
+				checkCrd = crd{ curX + 1,curY };
+				if (Exists(checkCrd)) //if there's no space to the left
+				{
+					if (DrawDebugText)
+						GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::White, FString::Printf(TEXT("Right Impossible")));
+					std::cout << "Right impossible \n";
+					continue; //try another direction
+				}
+				else {
+					if (DrawDebugText)
+						GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::White, FString::Printf(TEXT("Right Okay")));
+					std::cout << "Right is okay \n";
+					curX++; //move right
+					newCoord = crd{ curX, curY, 1 }; //move right 1 and add a new coord there
+					crdList.emplace_back(newCoord); //add it to the list
+					endMe = true;
+					break;
+				}
+			}
+		}
+	}
+
+	//print out the list
+	for (int i = 0; i < crdList.size(); i++) {
+		std::cout << "crd #" << i
+			<< "     x = " << crdList[i].x
+			<< " y = " << crdList[i].y
+			<< " d = " << crdList[i].d
+			<< "\n";
+	}
+
+
+
+
+}
+
+void AGameModeCPP::SnakeToUnreal()
+{
+	FActorSpawnParameters spawnParams;
+	spawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	FRotator rotator = FRotator(0, 0, 0);
+	FVector spawnLocation = FVector(0.f, 0.f, 0.f);
+	float realX = 0.f;
+	float realY = 0.f;
+	AActor* pieceToAdd;
+
+
+
+
+}
 
 
 void AGameModeCPP::oldDepthFirstMaze(int size)
