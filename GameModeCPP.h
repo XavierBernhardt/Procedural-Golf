@@ -147,8 +147,9 @@ public:
 	
 	void GenerateSnakeMaze();
 	TArray<FVector> usedLocations;
+	FVector currentLocation = FVector(0, 0, 0);
 	int globalRotation = 0;
 	int localRotation = 0;
-	int trackLength = 10;
+	int trackLength = 3;
 };
 
