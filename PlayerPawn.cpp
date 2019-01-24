@@ -186,8 +186,15 @@ void APlayerPawn::Tick(float DeltaTime)
 	FVector forwards = shootDirection.Vector()*lineLonger;
 
 	if (canShoot) {
-		DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation() + forwards, FColor(239, 239, 239), false, 0.03f, 0, 12.333);
-		
+
+		//FColor newCol = FColor(239, 239, 239);
+		//if (RainbowLines) { //expensive, i don't see any framerate problems but i expect bad pcs might come across them
+		// make this lincol thing a public variable so the hud can nick it, saves having to calculate it twice.
+			FLinearColor linCol = ((FLinearColor::LerpUsingHSV(FColor::FromHex("b50e0e"), (FLinearColor::LerpUsingHSV(FColor::FromHex("b50e0e"), FColor::FromHex("42a010"), (force - 5) * 2.7 / 100)), (force - 5) * 2 / 100)));
+			FColor newCol = linCol.ToFColor(true);
+		//}
+
+		DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation() + forwards, newCol , false, 0.03f, 0, 12.333); 		
 	}
 	//else
 		//DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation() + forwards, FColor(255, 0, 0), false, 0.01f, 0, 12.333);

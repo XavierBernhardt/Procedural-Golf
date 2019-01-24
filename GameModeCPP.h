@@ -106,7 +106,7 @@ public:
 	float startY;
 	float endX;
 	float endY;
-	bool DrawDebugText = true;
+	bool DrawDebugText = false;
 	TArray<AActor*> AllMazePieces;
 
 	TArray<TSubclassOf<AActor>> MazePieces;

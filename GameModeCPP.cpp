@@ -164,6 +164,8 @@ void AGameModeCPP::SnakeGenerationBegin()
 	MazePiecesAlt1.Add(MazeXAlt1);
 
 	GenerateSnakeMaze();
+	SnakeToUnreal();
+
 }
 //void AGameModeCPP::GenerateSnakeMazeOLD()
 //{
@@ -839,7 +841,7 @@ void AGameModeCPP::GenerateSnakeMaze()
 						GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::White, FString::Printf(TEXT("Left Okay")));
 					std::cout << "Left is okay \n";
 					curX--; //move left
-					newCoord = crd{ curX, curY , -1 }; //move left 1 and add a new coord there
+					newCoord = crd{ curX, curY , 1 }; //move left 1 and add a new coord there
 					crdList.emplace_back(newCoord); //add it to the list
 					endMe = true;
 					break;
@@ -886,7 +888,7 @@ void AGameModeCPP::GenerateSnakeMaze()
 						GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::White, FString::Printf(TEXT("Right Okay")));
 					std::cout << "Right is okay \n";
 					curX++; //move right
-					newCoord = crd{ curX, curY, 1 }; //move right 1 and add a new coord there
+					newCoord = crd{ curX, curY, -1 }; //move right 1 and add a new coord there
 					crdList.emplace_back(newCoord); //add it to the list
 					endMe = true;
 					break;
@@ -897,14 +899,15 @@ void AGameModeCPP::GenerateSnakeMaze()
 
 	//print out the list
 	for (int i = 0; i < crdList.size(); i++) {
+		GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::White, FString::Printf(TEXT("crd #%i , x = %i , y = %i , d = %i"), i, crdList[i].x, crdList[i].y, crdList[i].d));
+
 		std::cout << "crd #" << i
 			<< "     x = " << crdList[i].x
 			<< " y = " << crdList[i].y
 			<< " d = " << crdList[i].d
 			<< "\n";
 	}
-
-
+	GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::White, FString::Printf(TEXT("\n\n\n\n\n\n")));
 
 
 }
@@ -919,8 +922,117 @@ void AGameModeCPP::SnakeToUnreal()
 	float realY = 0.f;
 	AActor* pieceToAdd;
 
+	for (int i = 0; i < crdList.size(); i++) {
+		realX = crdList[i].x * 2000;
+		realY = crdList[i].y * 2000;
+		spawnLocation = FVector(realX, realY, 0.f);
+
+		if (i == 0) { //first will be a C facing up
+			pieceToAdd = GetWorld()->SpawnActor<AActor>(MazeC, spawnLocation, FRotator(0, 270, 0), spawnParams);
+			AllMazePieces.Add(pieceToAdd);
+		}
+		else if (i == crdList.size()-1) { //last will be a C facing backwards
+			switch (crdList[i].d) {
+				case -1: //enters west
+					pieceToAdd = GetWorld()->SpawnActor<AActor>(MazeC, spawnLocation, FRotator(0, 0, 0), spawnParams);
+					break;
+				case 0: //enters north
+					pieceToAdd = GetWorld()->SpawnActor<AActor>(MazeC, spawnLocation, FRotator(0, 90, 0), spawnParams);
+					break;
+				case 1: //enters east
+					pieceToAdd = GetWorld()->SpawnActor<AActor>(MazeC, spawnLocation, FRotator(0, 180, 0), spawnParams);
+					break;
+			}
+			AllMazePieces.Add(pieceToAdd);
+		}
+		else {
+			//switch (crdList[i].d) {
+			//case -1: //exits west
+			//	switch (crdList[i - 1].d) {
+			//		case -1: //enters west
+			//			pieceToAdd = GetWorld()->SpawnActor<AActor>(MazeI, spawnLocation, FRotator(0, 0, 0), spawnParams); // --
+			//			break;
+			//		case 0: //enters north
+			//			pieceToAdd = GetWorld()->SpawnActor<AActor>(MazeL, spawnLocation, FRotator(0, 90, 0), spawnParams); // ¬
+			//			break;
+			//		//case 1: //enters east
+			//		//	pieceToAdd = GetWorld()->SpawnActor<AActor>(MazeI, spawnLocation, FRotator(0, 0, 0), spawnParams); // wont happen
+			//		//	break;
+			//		}
+			//	break;
+			//case 0: //exits north
+			//	switch (crdList[i - 1].d) {
+			//		case -1: //enters west
+			//			pieceToAdd = GetWorld()->SpawnActor<AActor>(MazeL, spawnLocation, FRotator(0, 90, 0), spawnParams); // -`
+			//			break;
+			//		case 0: //enters north
+			//			pieceToAdd = GetWorld()->SpawnActor<AActor>(MazeI, spawnLocation, FRotator(0, 90, 0), spawnParams); // |
+			//			break;
+			//		case 1: //enters east
+			//			pieceToAdd = GetWorld()->SpawnActor<AActor>(MazeL, spawnLocation, FRotator(0, 90, 0), spawnParams); // `-
+			//			break;
+			//		}
+			//	break;
+			//case 1: //exits east
+			//	switch (crdList[i - 1].d) {
+			//		//case -1: //enters west
+			//		//	pieceToAdd = GetWorld()->SpawnActor<AActor>(MazeI, spawnLocation, FRotator(0, 90, 0), spawnParams); // -- wont happen
+			//		//	break;
+			//		case 0: //enters north
+			//			pieceToAdd = GetWorld()->SpawnActor<AActor>(MazeL, spawnLocation, FRotator(0, 270, 0), spawnParams); // ,-
+			//			break;
+			//		case 1: //enters east
+			//			pieceToAdd = GetWorld()->SpawnActor<AActor>(MazeI, spawnLocation, FRotator(0, 0, 0), spawnParams); // --
+			//			break;
+			//		}
+			//	break;
+			//}
+			if (crdList[i].d == 0 && crdList[i + 1].d == -1) { //enter south , exit west
+				pieceToAdd = GetWorld()->SpawnActor<AActor>(MazeL, spawnLocation, FRotator(0, 180, 0), spawnParams);
+			}
+			else if (crdList[i].d == 0 && crdList[i + 1].d == 0) { //enter/exit north/sout
+				pieceToAdd = GetWorld()->SpawnActor<AActor>(MazeI, spawnLocation, FRotator(0, 90, 0), spawnParams);
+			}
+			else if (crdList[i].d == 0 && crdList[i + 1].d == 1) { //enter south , exit east
+				pieceToAdd = GetWorld()->SpawnActor<AActor>(MazeL, spawnLocation, FRotator(0, 90, 0), spawnParams);
+			}
 
 
+
+			else if (crdList[i].d == 1 && crdList[i + 1].d == 0) { //enter west , exit north
+				pieceToAdd = GetWorld()->SpawnActor<AActor>(MazeL, spawnLocation, FRotator(0, 270, 0), spawnParams);
+			}
+
+			else if (crdList[i].d == 1 && crdList[i + 1].d == 1) { //enter/exit west/east
+				pieceToAdd = GetWorld()->SpawnActor<AActor>(MazeI, spawnLocation, FRotator(0, 0, 0), spawnParams);
+			}
+
+			else if (crdList[i].d == -1 && crdList[i + 1].d == 0) { //enter east , exit north
+				pieceToAdd = GetWorld()->SpawnActor<AActor>(MazeL, spawnLocation, FRotator(0, 0, 0), spawnParams);
+			}
+			else if (crdList[i].d == -1 && crdList[i + 1].d == -1) { //enter east , exit east
+				pieceToAdd = GetWorld()->SpawnActor<AActor>(MazeI, spawnLocation, FRotator(0, 0, 0), spawnParams);
+			}
+
+			else {
+				pieceToAdd = GetWorld()->SpawnActor<AActor>(MazeX, spawnLocation, FRotator(0, 0, 0), spawnParams);
+			}
+
+
+			AllMazePieces.Add(pieceToAdd);
+
+		}
+
+
+
+
+		//pieceToAdd = GetWorld()->SpawnActor<AActor>(MazeX, spawnLocation, rotator, spawnParams);
+		//AllMazePieces.Add(pieceToAdd);
+	}
+
+	spawnLocation = FVector(realX, realY, 0.f);
+	pieceToAdd = GetWorld()->SpawnActor<AActor>(FlagBP, spawnLocation, rotator, spawnParams);
+	AllMazePieces.Add(pieceToAdd);
 
 }
 

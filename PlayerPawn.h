@@ -182,6 +182,6 @@ public:
 	bool DrawFlagHitText = false;
 
 	FVector LastSafeLocation;
-
+	bool RainbowLines = true;
 }
 ;
