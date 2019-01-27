@@ -6,6 +6,7 @@
 #include "PlayerPawn.h"
 #include "UnrealMathUtility.h"
 #include "Components/StaticMeshComponent.h"
+#include "MazeNodeMain.h"
 #include <iostream>
 #include <algorithm>
 #include <time.h>       /* time */
@@ -162,6 +163,8 @@ void AGameModeCPP::SnakeGenerationBegin()
 	MazePiecesAlt1.Add(MazeNAlt1);
 	MazePiecesAlt1.Add(MazeTAlt1);
 	MazePiecesAlt1.Add(MazeXAlt1);
+
+	crdList.clear();
 
 	GenerateSnakeMaze();
 	SnakeToUnreal();
@@ -612,6 +615,7 @@ void AGameModeCPP::depthFirstMaze()
 		col--;
 	}
 
+
 	maze[row][col] = 0;
 	startX = row * 2000;
 	startY = col * 2000;
@@ -670,10 +674,10 @@ void AGameModeCPP::DFMtoUnreal()
 		realY = 0.f;
 		realX = realX + 2000;
 	}
-	rotator = FRotator(0, 0, 0);
-	spawnLocation = FVector(4000.f, 4000.f, 5.f);
-	pieceToAdd = GetWorld()->SpawnActor<AActor>(MazeFloor, spawnLocation, rotator, spawnParams);
-	AllMazePieces.Add(pieceToAdd);
+	//rotator = FRotator(0, 0, 0);
+	//spawnLocation = FVector(4000.f, 4000.f, 5.f);
+	//pieceToAdd = GetWorld()->SpawnActor<AActor>(MazeFloor, spawnLocation, rotator, spawnParams);
+	//AllMazePieces.Add(pieceToAdd);
 }
 
 void AGameModeCPP::placePiece(int x, int y)
@@ -772,14 +776,32 @@ void AGameModeCPP::placePiece(int x, int y)
 
 }
 
-void AGameModeCPP::resetDFM()
+void AGameModeCPP::resetMap()
 {
-	for (int i = 0; i != AllMazePieces.Num(); ++i)
+	AGameState* MyGameState = Cast<AGameState>(GameState);
+	if (MyGameState)
 	{
-		AllMazePieces[i]->Destroy();
+		FString LevelName = GetWorld()->GetMapName();
+		LevelName.RemoveFromStart(GetWorld()->StreamingLevelsPrefix);
+
+
+		for (int i = 0; i != AllMazePieces.Num(); ++i)
+		{
+			AllMazePieces[i]->Destroy();
+		}
+		AllMazePieces.Reset();
+
+		if (LevelName.Equals("MazeGeneration")) {
+			MazeGenerationBegin();
+		}
+		else if (LevelName.Equals("ControlMap")) {
+
+		}
+		if (LevelName.Equals("SnakeGeneration")) {
+
+			SnakeGenerationBegin();
+		}
 	}
-	AllMazePieces.Reset();
-	MazeGenerationBegin();
 }
 
 bool AGameModeCPP::DiceRoll(int percentage)
@@ -898,16 +920,16 @@ void AGameModeCPP::GenerateSnakeMaze()
 	}
 
 	//print out the list
-	for (int i = 0; i < crdList.size(); i++) {
-		GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::White, FString::Printf(TEXT("crd #%i , x = %i , y = %i , d = %i"), i, crdList[i].x, crdList[i].y, crdList[i].d));
+	//for (int i = 0; i < crdList.size(); i++) {
+	//	GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::White, FString::Printf(TEXT("crd #%i , x = %i , y = %i , d = %i"), i, crdList[i].x, crdList[i].y, crdList[i].d));
 
-		std::cout << "crd #" << i
-			<< "     x = " << crdList[i].x
-			<< " y = " << crdList[i].y
-			<< " d = " << crdList[i].d
-			<< "\n";
-	}
-	GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::White, FString::Printf(TEXT("\n\n\n\n\n\n")));
+	//	std::cout << "crd #" << i
+	//		<< "     x = " << crdList[i].x
+	//		<< " y = " << crdList[i].y
+	//		<< " d = " << crdList[i].d
+	//		<< "\n";
+	//}
+	//GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::White, FString::Printf(TEXT("\n\n\n\n\n\n")));
 
 
 }
@@ -928,6 +950,7 @@ void AGameModeCPP::SnakeToUnreal()
 		spawnLocation = FVector(realX, realY, 0.f);
 
 		if (i == 0) { //first will be a C facing up
+
 			pieceToAdd = GetWorld()->SpawnActor<AActor>(MazeC, spawnLocation, FRotator(0, 270, 0), spawnParams);
 			AllMazePieces.Add(pieceToAdd);
 		}

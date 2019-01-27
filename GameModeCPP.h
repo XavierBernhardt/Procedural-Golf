@@ -142,7 +142,7 @@ public:
 	void placePiece(int x, int y);
 	TSubclassOf<class AActor> pieceToPlace = MazeN; //by default place a solid block
 	int pieceToRotate = 0; //rotation is 0 by default
-	void resetDFM();
+	void resetMap();
 	bool DiceRoll(int percentage);
 	
 	void GenerateSnakeMaze();
