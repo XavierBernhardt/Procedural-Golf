@@ -5,60 +5,40 @@
 
 
 // Sets default values
+//AMazeNodeMain::AMazeNodeMain(int type, int floor):type(type),floor(floor)
+
 AMazeNodeMain::AMazeNodeMain()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-	//Types:
-	//0 1 2 3 4 5
-	//C I L N T X
-	//Default: C/0
 	type = 0;
-
-	//Floor:
-	//0			1		2
-	//Grass		Ice		Hole 
-	//Default			(unused)
 	floor = 0;
 
 }	
+//Types:
+//0 1 2 3 4 5
+//C I L N T X
+//Default: C/0
+//type = 0;
+
+//Floor:
+//0			1		2
+//Grass		Ice		Hole 
+//Default			(unused)
+//floor = 0;
 
 // Called when the game starts or when spawned
 void AMazeNodeMain::BeginPlay()
 {
 	Super::BeginPlay();
+}
 
-	FActorSpawnParameters spawnParams;
-	spawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-
-	switch (type) {
-	case 0: //C
-		GetWorld()->SpawnActor<AActor>(MazeC, GetActorLocation(), GetActorRotation(), spawnParams);
-		break;
-	case 1: //I
-		GetWorld()->SpawnActor<AActor>(MazeI, GetActorLocation(), GetActorRotation(), spawnParams);
-		break;
-	case 2: //L
-		GetWorld()->SpawnActor<AActor>(MazeL, GetActorLocation(), GetActorRotation(), spawnParams);
-		break;
-	case 3: //N
-		GetWorld()->SpawnActor<AActor>(MazeN, GetActorLocation(), GetActorRotation(), spawnParams);
-		break;
-	case 4: //T
-		GetWorld()->SpawnActor<AActor>(MazeT, GetActorLocation(), GetActorRotation(), spawnParams);
-		break;
-	case 5: //X
-		GetWorld()->SpawnActor<AActor>(MazeX, GetActorLocation(), GetActorRotation(), spawnParams);
-		break;
-	
-	break;
-	}
-
-	switch (floor) {
-	case 0: //C
-		GetWorld()->SpawnActor<AActor>(MazeFloor, GetActorLocation(), GetActorRotation(), spawnParams);
-		break;
-	}
+void AMazeNodeMain::Destroyed()
+{
+	if (myPiece != nullptr)
+	myPiece->Destroy();
+	if (myFloor != nullptr)
+	myFloor->Destroy();
 
 }
 
@@ -69,3 +49,75 @@ void AMazeNodeMain::Tick(float DeltaTime) //might be able to disable this
 
 }
 
+void AMazeNodeMain::setType(int setType)
+{
+	type = setType;
+}
+
+void AMazeNodeMain::setFloor(int setFloor)
+{
+	floor = setFloor;
+}
+
+void AMazeNodeMain::init()
+{
+	FActorSpawnParameters spawnParams;
+	spawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+	switch (type) {
+	case 0: //C
+		if (!DiceRoll(ChanceForAlt2C))
+			myPiece = GetWorld()->SpawnActor<AActor>(MazeC, GetActorLocation(), GetActorRotation(), spawnParams);
+		else
+			myPiece = GetWorld()->SpawnActor<AActor>(MazeCAlt2, GetActorLocation(), GetActorRotation(), spawnParams);
+		break;
+	case 1: //I
+		if (!DiceRoll(ChanceForAlt2I))
+			myPiece = GetWorld()->SpawnActor<AActor>(MazeI, GetActorLocation(), GetActorRotation(), spawnParams);
+		else
+			myPiece = GetWorld()->SpawnActor<AActor>(MazeIAlt2, GetActorLocation(), GetActorRotation(), spawnParams);
+		break;
+	case 2: //L
+		if (!DiceRoll(ChanceForAlt2L))
+			myPiece = GetWorld()->SpawnActor<AActor>(MazeL, GetActorLocation(), GetActorRotation(), spawnParams);
+		else
+			myPiece = GetWorld()->SpawnActor<AActor>(MazeLAlt2, GetActorLocation(), GetActorRotation(), spawnParams);
+		break;
+	case 3: //N
+		if (!DiceRoll(ChanceForAlt2N))
+			myPiece = GetWorld()->SpawnActor<AActor>(MazeN, GetActorLocation(), GetActorRotation(), spawnParams);
+		else
+			myPiece = GetWorld()->SpawnActor<AActor>(MazeNAlt2, GetActorLocation(), GetActorRotation(), spawnParams);
+		break;
+	case 4: //T
+		if (!DiceRoll(ChanceForAlt2T))
+			myPiece = GetWorld()->SpawnActor<AActor>(MazeT, GetActorLocation(), GetActorRotation(), spawnParams);
+		else
+			myPiece = GetWorld()->SpawnActor<AActor>(MazeTAlt2, GetActorLocation(), GetActorRotation(), spawnParams);
+		break;
+	case 5: //X
+		if (!DiceRoll(ChanceForAlt2X))
+			myPiece = GetWorld()->SpawnActor<AActor>(MazeX, GetActorLocation(), GetActorRotation(), spawnParams);
+		else
+			myPiece = GetWorld()->SpawnActor<AActor>(MazeXAlt2, GetActorLocation(), GetActorRotation(), spawnParams);
+		break;
+	
+	break;
+	}
+	switch (floor) {
+	case 0: //flat
+		myFloor = GetWorld()->SpawnActor<AActor>(MazeFloor, GetActorLocation(), GetActorRotation(), spawnParams);
+		break;
+	case 2: //hole
+		myFloor = GetWorld()->SpawnActor<AActor>(MazeFloorHole, GetActorLocation(), GetActorRotation(), spawnParams);
+		break;
+	}
+}
+
+bool AMazeNodeMain::DiceRoll(int percentage)
+{
+	if (percentage == 0) { //prevent dividing by 0
+		return false;
+	}
+	return (FMath::RandRange(1, 100 / percentage) == 1 ? true : false);
+}

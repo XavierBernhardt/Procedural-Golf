@@ -25,6 +25,8 @@ protected:
 	//	TSubclassOf<class AController> PlayerController
 	
 	//Maze 1
+	UPROPERTY(EditAnywhere, Category = Maze1)
+		TSubclassOf<class AActor> MazeNodeMain;
 
 	UPROPERTY(EditAnywhere, Category = Maze1)
 		TSubclassOf<class AActor> MazeN;
@@ -144,7 +146,7 @@ public:
 	int pieceToRotate = 0; //rotation is 0 by default
 	void resetMap();
 	bool DiceRoll(int percentage);
-	
+	int pieceType;
 	void GenerateSnakeMaze();
 
 	//TArray<FVector> usedLocations;

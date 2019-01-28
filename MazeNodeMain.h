@@ -14,12 +14,17 @@ class PROCEDURALGOLFV2_API AMazeNodeMain : public AActor
 public:	
 	// Sets default values for this actor's properties
 	AMazeNodeMain();
-	int type;
-	int floor;
+	//	AMazeNodeMain(int type, int floor);
+
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+	virtual void Destroyed() override;
+	int type;
+	int floor;
+	AActor* myPiece;
+	AActor* myFloor;
 
 public:	
 	// Called every frame
@@ -44,4 +49,54 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = Maze1)
 		TSubclassOf<class AActor> MazeFloor;
+	UPROPERTY(EditAnywhere, Category = Maze1)
+		TSubclassOf<class AActor> MazeFloorHole;
+
+	//Maze 2 (Curved)
+
+	UPROPERTY(EditAnywhere, Category = MazeAlt1)
+		TSubclassOf<class AActor> MazeNAlt2;
+
+	UPROPERTY(EditAnywhere, Category = MazeAlt1)
+		TSubclassOf<class AActor> MazeCAlt2;
+
+	UPROPERTY(EditAnywhere, Category = MazeAlt1)
+		TSubclassOf<class AActor> MazeLAlt2;
+
+	UPROPERTY(EditAnywhere, Category = MazeAlt1)
+		TSubclassOf<class AActor> MazeIAlt2;
+
+	UPROPERTY(EditAnywhere, Category = MazeAlt1)
+		TSubclassOf<class AActor> MazeTAlt2;
+
+	UPROPERTY(EditAnywhere, Category = MazeAlt1)
+		TSubclassOf<class AActor> MazeXAlt2;
+
+	UPROPERTY(EditAnywhere, Category = MazeAlt1Chance, meta = (ClampMin = "0", ClampMax = "100", UIMin = "0", UIMax = "100"))
+		int ChanceForAlt2N;
+
+	UPROPERTY(EditAnywhere, Category = MazeAlt1Chance, meta = (ClampMin = "0", ClampMax = "100", UIMin = "0", UIMax = "100"))
+		int ChanceForAlt2C;
+
+	UPROPERTY(EditAnywhere, Category = MazeAlt1Chance, meta = (ClampMin = "0", ClampMax = "100", UIMin = "0", UIMax = "100"))
+		int ChanceForAlt2L;
+
+	UPROPERTY(EditAnywhere, Category = MazeAlt1Chance, meta = (ClampMin = "0", ClampMax = "100", UIMin = "0", UIMax = "100"))
+		int ChanceForAlt2I;
+
+	UPROPERTY(EditAnywhere, Category = MazeAlt1Chance, meta = (ClampMin = "0", ClampMax = "100", UIMin = "0", UIMax = "100"))
+		int ChanceForAlt2T;
+
+	UPROPERTY(EditAnywhere, Category = MazeAlt1Chance, meta = (ClampMin = "0", ClampMax = "100", UIMin = "0", UIMax = "100"))
+		int ChanceForAlt2X;
+
+
+
+
+	void setType(int setPiece);
+	void setFloor(int setFloor);
+	void init();
+	bool DiceRoll(int percentage);
+
+
 };
