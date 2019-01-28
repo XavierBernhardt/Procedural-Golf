@@ -52,6 +52,8 @@ protected:
 	UPROPERTY(EditAnywhere, Category = Maze1)
 		TSubclassOf<class AActor> FlagBP;
 
+	UPROPERTY(EditAnywhere, Category = Maze1)
+		TSubclassOf<class AActor> FlagNoBase;
 	//Maze 2 (Curved)
 
 	UPROPERTY(EditAnywhere, Category = MazeAlt1)

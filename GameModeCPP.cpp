@@ -958,7 +958,7 @@ void AGameModeCPP::SnakeToUnreal()
 				case -1: //enters west
 					mazeNode = GetWorld()->SpawnActor<AMazeNodeMain>(MazeNodeMain, spawnLocation, FRotator(0, 0, 0), spawnParams);
 					mazeNode->setType(0);
-					mazeNode->setFloor(0); //could implement a hole in the floor version here.
+					mazeNode->setFloor(0); //set to 0 for hole (experemental)
 					mazeNode->init();
 					break;
 				case 0: //enters north
@@ -1071,7 +1071,8 @@ void AGameModeCPP::SnakeToUnreal()
 		}
 	}
 	spawnLocation = FVector(realX, realY, 0.f);
-	pieceToAdd = GetWorld()->SpawnActor<AActor>(FlagBP, spawnLocation, rotator, spawnParams);
+	pieceToAdd = GetWorld()->SpawnActor<AActor>(FlagBP, spawnLocation, rotator, spawnParams); //FlagNoBase for hole
+	
 	AllMazePieces.Add(pieceToAdd);
 }
 

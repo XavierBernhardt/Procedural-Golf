@@ -212,8 +212,11 @@ void APlayerPawn::Tick(float DeltaTime)
 	if (slowMoving) {
 		if (DrawDebugText)
 		GEngine->AddOnScreenDebugMessage(200, 0.01f, FColor::Red, FString::Printf(TEXT("SlowMoving = true")));
-		Ball->SetAngularDamping(15.f);
-		Ball->SetLinearDamping(15.f);
+		if (Ball->GetLinearDamping() == realDamping) {
+			Ball->SetAngularDamping(15.f);
+			Ball->SetLinearDamping(15.f);
+		}
+
 	}
 	else {
 		if (DrawDebugText)
@@ -235,8 +238,8 @@ void APlayerPawn::Tick(float DeltaTime)
 	if (GetActorLocation().Z < -500) {
 		SetActorLocation(LastSafeLocation);
 		slowMoving = true;
-		Ball->SetLinearDamping(100);
-		Ball->SetAngularDamping(100);
+		Ball->SetLinearDamping(1000);
+		Ball->SetAngularDamping(1000);
 		canSetShoot = true;
 		canShoot = false;
 		touchedFlag = false;
@@ -520,6 +523,16 @@ void APlayerPawn::OnOverlap(UPrimitiveComponent * HitComp, AActor * OtherActor, 
 		if (!touchedFlag) {
 			if (DrawDebugText)
 			GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Purple, FString::Printf(TEXT("Touched Flag")));
+			Ball->SetLinearDamping(30);
+			Ball->SetAngularDamping(30);
+	/*		Ball->SetPhysicsLinearVelocity(-Ball->GetPhysicsLinearVelocity());
+
+			FVector forwards = Ball->GetPhysicsLinearVelocity();
+			FVector impulse = GetActorRotation().Vector() + forwards;
+			
+			Ball->AddImpulse(-impulse);*/
+			//SetActorLocation(Cast<AFlagActor>(OtherActor)->GetActorLocation());
+			
 			DrawFlagHitText = true;
 			touchedFlag = true;
 			slowMoving = true;
