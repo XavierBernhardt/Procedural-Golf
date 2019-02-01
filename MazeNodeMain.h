@@ -92,6 +92,11 @@ public:
 
 
 
+	UPROPERTY(EditAnywhere, Category = Room)
+		TSubclassOf<class AActor> MazeWallSAND;
+
+	UPROPERTY(EditAnywhere, Category = Room)
+		TSubclassOf<class AActor> MazeFloorSAND;
 
 	void setType(int setPiece);
 	void setFloor(int setFloor);

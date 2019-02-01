@@ -16,16 +16,19 @@ AMazeNodeMain::AMazeNodeMain()
 
 }	
 //Types:
-//0 1 2 3 4 5
-//C I L N T X
+//0 1 2 3 4 5 6
+//C I L N T X S
 //Default: C/0
 //type = 0;
+// 6 / S = SAND
 
 //Floor:
-//0			1		2
-//Grass		Ice		Hole 
+//0			1		2		4
+//Grass		Ice		Hole	Sand
 //Default			(unused)
 //floor = 0;
+
+//-1 just generates nothing for floor / wall 
 
 // Called when the game starts or when spawned
 void AMazeNodeMain::BeginPlay()
@@ -101,7 +104,9 @@ void AMazeNodeMain::init()
 		else
 			myPiece = GetWorld()->SpawnActor<AActor>(MazeXAlt2, GetActorLocation(), GetActorRotation(), spawnParams);
 		break;
-	
+	case 6: //S(and)
+		myPiece = GetWorld()->SpawnActor<AActor>(MazeWallSAND, GetActorLocation(), GetActorRotation(), spawnParams);
+		break;
 	break;
 	}
 	switch (floor) {
@@ -110,6 +115,9 @@ void AMazeNodeMain::init()
 		break;
 	case 2: //hole
 		myFloor = GetWorld()->SpawnActor<AActor>(MazeFloorHole, GetActorLocation(), GetActorRotation(), spawnParams);
+		break;
+	case 4: //Sand
+		myFloor = GetWorld()->SpawnActor<AActor>(MazeFloorSAND, GetActorLocation(), GetActorRotation(), spawnParams);
 		break;
 	}
 }

@@ -61,6 +61,12 @@ void AGameModeCPP::InitGameState()
 			SnakeGenerationBegin();
 			GetWorld()->SpawnActor<AActor>(PlayerPawn, FVector(0.f, 0.f, 0.f), FRotator(0, 0, 0), spawnParams);
 		}
+		else if (LevelName.Equals("RoomGeneration")) {
+			if (DrawDebugText)
+				GEngine->AddOnScreenDebugMessage(110, 99.f, FColor::Cyan, TEXT("Current Level: Room Generation"));
+			roomGeneration();
+			GetWorld()->SpawnActor<AActor>(PlayerPawn, FVector(0.f, 0.f, 0.f), FRotator(0, 0, 0), spawnParams);
+		}
 		//CurrentHole = 0;
 
 		////Code to fill the locations of each starting point
@@ -452,11 +458,11 @@ void AGameModeCPP::SnakeGenerationBegin()
 //
 //}
 
-bool AGameModeCPP::Exists(crd toFind)
+bool AGameModeCPP::Exists(crd toFind, std::vector<crd> listToCheck)
 {
 	std::cout << "Searching array... \n";
-	for (int i = 0; i < crdList.size(); i++) {
-		if ((crdList.at(i).x == toFind.x) && (crdList.at(i).y == toFind.y)) {
+	for (int i = 0; i < listToCheck.size(); i++) {
+		if ((listToCheck.at(i).x == toFind.x) && (listToCheck.at(i).y == toFind.y)) {
 			std::cout << "Coordinate is in use \n";
 			return true;
 		}
@@ -791,11 +797,12 @@ void AGameModeCPP::resetMap()
 			MazeGenerationBegin();
 		}
 		else if (LevelName.Equals("ControlMap")) {
-
 		}
 		if (LevelName.Equals("SnakeGeneration")) {
-
 			SnakeGenerationBegin();
+		}
+		if (LevelName.Equals("RoomGeneration")) {
+			roomGeneration();
 		}
 	}
 }
@@ -847,7 +854,7 @@ void AGameModeCPP::GenerateSnakeMaze()
 					GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::White, FString::Printf(TEXT("Checking Left")));
 				std::cout << "Checking left \n";
 				checkCrd = crd{ curX - 1,curY };
-				if (Exists(checkCrd)) //if there's no space to the left
+				if (Exists(checkCrd, crdList)) //if there's no space to the left
 				{
 					if (DrawDebugText)
 						GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::White, FString::Printf(TEXT("Left Impossible")));
@@ -871,7 +878,7 @@ void AGameModeCPP::GenerateSnakeMaze()
 					GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::White, FString::Printf(TEXT("Checking Up")));
 				std::cout << "Checking up \n";
 				checkCrd = crd{ curX,curY + 1 };
-				if (Exists(checkCrd)) //if there's no space to the left
+				if (Exists(checkCrd, crdList)) //if there's no space to the left
 				{
 					if (DrawDebugText)
 						GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::White, FString::Printf(TEXT("Up Impossible")));
@@ -894,7 +901,7 @@ void AGameModeCPP::GenerateSnakeMaze()
 					GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::White, FString::Printf(TEXT("Checking Right")));
 				std::cout << "Checking right \n";
 				checkCrd = crd{ curX + 1,curY };
-				if (Exists(checkCrd)) //if there's no space to the left
+				if (Exists(checkCrd, crdList)) //if there's no space to the left
 				{
 					if (DrawDebugText)
 						GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::White, FString::Printf(TEXT("Right Impossible")));
@@ -1082,6 +1089,406 @@ void AGameModeCPP::SnakeToUnreal()
 	spawnLocation = FVector(realX, realY, 0.f);
 	pieceToAdd = GetWorld()->SpawnActor<AActor>(FlagBP, spawnLocation, rotator, spawnParams); //FlagNoBase for hole
 	
+	AllMazePieces.Add(pieceToAdd);
+}
+
+int AGameModeCPP::HardCodedRotate(int randomDirection)
+{ //Input Fwd / Bck / CW / CCW  aka 0 2 1 3
+	switch (direction)
+	{
+	case 0: //North
+		if (randomDirection == 0) //forwards
+			direction = 0;
+		else if (randomDirection == 2) //backwards
+			direction = 2;
+		else if (randomDirection == 1) //turn CW
+			direction = 1;
+		else if (randomDirection == -1) //turn CCW
+			direction = 3;
+		break;
+	case 1: //East
+		if (randomDirection == 0) //forwards
+			direction = 1;
+		else if (randomDirection == 2) //backwards
+			direction = 3;
+		else if (randomDirection == 1) //turn CW
+			direction = 2;
+		else if (randomDirection == -1) //turn CCW
+			direction = 0;
+		break;
+	case 2: //South
+		if (randomDirection == 0) //forwards
+			direction = 2;
+		else if (randomDirection == 2) //backwards
+			direction = 0;
+		else if (randomDirection == 1) //turn CW
+			direction = 3;
+		else if (randomDirection == -1) //turn CCW
+			direction = 1;
+		break;
+	case 3: //West
+		if (randomDirection == 0) //forwards
+			direction = 3;
+		else if (randomDirection == 2) //backwards
+			direction = 1;
+		else if (randomDirection == 1) //turn CW
+			direction = 0;
+		else if (randomDirection == -1) //turn CCW
+			direction = 2;
+		break;
+	}
+	return direction; //Absolute direction to move in based on rotation
+}
+
+void AGameModeCPP::MoveBorders()
+{
+	if (curX < minX) { //if this is the most left we have been
+		minX = curX;
+	}
+	if (curX > maxX) { //if this is the most right we have been
+		maxX = curX;
+	}
+	if (curY < minY) { //if this is the most down we have been
+		minY = curY;
+	}
+	if (curY > maxY) { //if this is the most up we have been
+		maxY = curY;
+	}
+}
+
+void AGameModeCPP::roomGeneration()
+{
+	//initiate variables
+	curX = 0; //current x
+	curY = 0; //current y
+	direction = 0; //Previous (absolute) direction - Defualt North
+	checkCrd = crd{ 0,0 }; //coordinate we want to move to, start at 0,0
+	srand(time(0)); //seed 
+	//Clear the lists just in case this is not the first run
+	crdList.clear();
+	roomList.clear();
+	std::cout << "hitSelf = " << hitSelf << " turnBack = " << turnBack << " turnChance = " << turnChance << "\n";
+
+	//mark 0,0 and 0,1 as taken (starting area is default)
+	crd newCoord{ curX, curY }; //first coord is always 0,0
+	crdList.emplace_back(newCoord);
+
+	/* (Defaults)
+	roomPathLength = 30; //Must be above 3 or more
+	roomChance = 10; //% of paths will spawn a room
+	turnChance = 50; //% chance to turn vs go in a straight line
+	hitSelf = true; //true = path can go through itself 
+	turnBack = true; //true = path can turn backwards (requires hitSelf = true)
+	*/
+
+
+	//place roomPathLength amount of paths
+	for (int i = 0; i < roomPathLength - 1; i++) { //start placing paths
+		std::cout << "\nStarting loop \n";
+
+		//Create a random list of rotations
+
+		int randRotate[4] = { 0, 1, -1, 2 }; //0 = forwards , 1 = turn CW , -1 = turn CCW , 2 = backwards
+
+		if (turnBack) { randRotate[3] = 0; } //If turning backwards is disabled, prevent that from being an option by making it check f twice.
+
+		if (DiceRoll(turnChance)) { //If there is a chance to turn...
+			std::random_shuffle(&randRotate[0], &randRotate[4]); //randomise the order they're checked in
+			for (int i = 0; i < 4; i++) {
+				if (randRotate[i] == 0) {
+					std::swap(randRotate[i], randRotate[3]); //swap "forwards" to the end, so it is checked last.
+				}
+			}
+		} //Could just randomly decide to go straight too.
+		//Could change by looking for 0 and putting that at the back to ensure a straight line is the last option
+
+		std::cout << "Random order = " << randRotate[0] << randRotate[1] << randRotate[2] << randRotate[3] << "\n";
+		bool endMe = false; //for breaking the loop once a good location has been found
+
+		//Create a list of directions to check, based on the list of rotations
+		int checkDirs[4] = { Rotate(randRotate[0]), Rotate(randRotate[1]), Rotate(randRotate[2]), Rotate(randRotate[3]) }; //Could be simplified but this works fine.
+		std::cout << "Random directions = " << checkDirs[0] << checkDirs[1] << checkDirs[2] << checkDirs[3] << "\n";
+
+		//Check these directions one by one in the random order
+		//As soon as one of these directions is found to be okay, break, move and start this loop again.
+		for (int i = 0; i < 4; i++) { //check the 4 directions
+			switch (checkDirs[i]) {
+			case 0: // North
+				if (endMe) break;
+				directionOkay = true; //by default this direction is safe
+				std::cout << "Checking North \n";
+				if (!hitSelf) { //If it is not allowed to hit itself
+					if (Exists(crd{ curX,curY + 1, 0 }, crdList)) //Search through array if that coordinate is taken)
+					{ //Double nested ifs here to ensure an array search doesnt happen if unneccessary.
+						std::cout << "North impossible \n";
+						directionOkay = false; //this direction is not okay.
+					}
+				}
+				if (directionOkay) {
+					std::cout << "North is okay \n";
+					curY++; //move up
+					direction = checkDirs[i];
+					if (!Exists(crd{ curX,curY, 0 }, crdList)) //Search through array if that coordinate is taken) (ensures no duplicate coords)
+						crdList.emplace_back(crd{ curX, curY, 0 }); //add it to the list 
+					endMe = true;
+					break;
+				}
+			case 1: // East
+				if (endMe) break;
+				directionOkay = true; //by default this direction is safe
+				std::cout << "Checking East \n";
+				if (!hitSelf) { //If it is not allowed to hit itself
+					if (Exists(crd{ curX + 1,curY, 0 }, crdList)) //Search through array if that coordinate is taken)
+					{ //Double nested ifs here to ensure an array search doesnt happen if unneccessary.
+						std::cout << "East impossible \n";
+						directionOkay = false; //this direction is not okay.
+					}
+				}
+				if (directionOkay) {
+					std::cout << "East is okay \n";
+					curX++; //move right
+					direction = checkDirs[i];
+					if (!Exists(crd{ curX,curY, 0 }, crdList)) //Search through array if that coordinate is taken) (ensures no duplicate coords)
+						crdList.emplace_back(crd{ curX, curY, 0 }); //add it to the list 
+					endMe = true;
+					break;
+				}
+			case 2: // South
+				if (endMe) break;
+				directionOkay = true; //by default this direction is safe
+				std::cout << "Checking South \n";
+				if (!hitSelf) { //If it is not allowed to hit itself
+					if (Exists(crd{ curX,curY - 1, 0 }, crdList)) //Search through array if that coordinate is taken)
+					{ //Double nested ifs here to ensure an array search doesnt happen if unneccessary.
+						std::cout << "South impossible \n";
+						directionOkay = false; //this direction is not okay.
+					}
+				}
+				if (directionOkay) {
+					std::cout << "South is okay \n";
+					curY--; //move up
+					direction = checkDirs[i];
+					if (!Exists(crd{ curX,curY, 0 }, crdList)) //Search through array if that coordinate is taken) (ensures no duplicate coords)
+						crdList.emplace_back(crd{ curX, curY, 0 }); //add it to the list 
+					endMe = true;
+					break;
+				}
+			case 3: // West
+				if (endMe) break;
+				directionOkay = true; //by default this direction is safe
+				std::cout << "Checking West \n";
+				if (!hitSelf) { //If it is not allowed to hit itself
+					if (Exists(crd{ curX - 1,curY, 0 }, crdList)) //Search through array if that coordinate is taken)
+					{ //Double nested ifs here to ensure an array search doesnt happen if unneccessary.
+						std::cout << "West impossible \n";
+						directionOkay = false; //this direction is not okay.
+					}
+				}
+				if (directionOkay) {
+					std::cout << "West is okay \n";
+					curX--; //move left
+					direction = checkDirs[i];
+					if (!Exists(crd{ curX,curY, 0 }, crdList)) //Search through array if that coordinate is taken) (ensures no duplicate coords)
+						crdList.emplace_back(crd{ curX, curY, 0 }); //add it to the list 
+					endMe = true;
+					break;
+				}
+			}
+		}
+		std::cout << "Floor has been placed. \n";
+
+		MoveBorders(); //Check to see if the current position is out of the border, if so, increase border that way.
+
+		if (DiceRoll(roomChance)) {
+			std::cout << "!!!Placing a room!!! \n";
+
+			//Room list is kept seperate from coord list,
+			//so that the actual "snake" is seperate from the random rooms it drops
+			//so that if hitself = false, it will still be able to move around 
+			// (otherwise it would create a room, surround itself with floors, and be unable to move)
+
+			//the final product will be both vectors combined to form a big list of floor coordinates
+
+			//Can create different formations of rooms by adjusting these values, this is just a square.
+
+			MakeRoom3x3(crd{ curX, curY, 0 });
+
+			roomsPlaced++;
+
+		}
+	}
+	flagLocation = crd{ curX, curY, 0 };
+
+	//print out the list
+	for (int i = 0; i < crdList.size(); i++) {
+		std::cout << "crd #" << i
+			<< "     x = " << crdList[i].x
+			<< " y = " << crdList[i].y
+			<< " Wall = " << crdList[i].d
+			<< "\n";
+	}
+
+	crdList.insert(crdList.end(), roomList.begin(), roomList.end()); //concatonate the lists
+	roomList.clear(); //clear that room list to save memory (its not needed now)
+
+
+	//print out the list with rooms included
+	std::cout << "WITH " << roomsPlaced << " ROOMS --------------------\n";
+	for (int i = 0; i < crdList.size(); i++) {
+		std::cout << "crd #" << i
+			<< "     x = " << crdList[i].x
+			<< " y = " << crdList[i].y
+			<< " Wall = " << crdList[i].d
+			<< "\n";
+	}
+
+	generateWalls();
+
+	crdList.insert(crdList.end(), roomList.begin(), roomList.end()); //concatonate the lists
+	roomList.clear(); //clear that room list to save memory (its not needed now)
+	//roomlist was re used to hold the walls.
+
+	//print out the list with walls included
+	std::cout << "WITH " << wallsPlaced << " WALLS --------------------\n";
+	for (int i = 0; i < crdList.size(); i++) {
+		std::cout << "crd #" << i
+			<< "     x = " << crdList[i].x
+			<< " y = " << crdList[i].y
+			<< " Wall = " << crdList[i].d
+			<< "\n";
+	}
+	roomToUnreal(); //Turn this list of walls and floors into a real map
+
+}
+
+void AGameModeCPP::MakeRoom3x3(crd newCoord) //slow ish due to having to check for dupe coords
+{
+	/*
+	0 0	0    x is the current node, 0 is the floors made around it
+	0 x	0
+	0 0	0
+	*/ 
+	if (!Exists(crd{ curX, curY + 1, 0 } , roomList) && !Exists(crd{ curX, curY + 1, 0 }, crdList)) //ensure no duplicate coords
+		roomList.emplace_back(crd{ curX, curY + 1, 0 }); //TOP
+	if (!Exists(crd{ curX + 1, curY + 1, 0 }, roomList) && !Exists(crd{ curX + 1, curY + 1, 0 }, crdList)) //ensure no duplicate coords
+		roomList.emplace_back(crd{ curX + 1, curY + 1, 0 }); //TOP RIGHT
+	if (!Exists(crd{ curX + 1, curY, 0 }, roomList) && !Exists(crd{ curX + 1, curY, 0 }, crdList)) //ensure no duplicate coords
+		roomList.emplace_back(crd{ curX + 1, curY, 0 }); //RIGHT
+	if (!Exists(crd{ curX + 1, curY - 1, 0 }, roomList) && !Exists(crd{ curX + 1, curY - 1, 0 }, crdList)) //ensure no duplicate coords
+		roomList.emplace_back(crd{ curX + 1, curY - 1, 0 }); //BOTTOM RIGHT
+	if (!Exists(crd{ curX, curY - 1, 0 }, roomList) && !Exists(crd{ curX, curY - 1, 0 }, crdList)) //ensure no duplicate coords
+		roomList.emplace_back(crd{ curX, curY - 1, 0 }); //BOTTOM
+	if (!Exists(crd{ curX - 1, curY - 1, 0 }, roomList) && !Exists(crd{ curX - 1, curY - 1, 0 }, crdList)) //ensure no duplicate coords
+		roomList.emplace_back(crd{ curX - 1, curY - 1, 0 }); //BOTTOM LEFT
+	if (!Exists(crd{ curX - 1, curY, 0 }, roomList) && !Exists(crd{ curX - 1, curY, 0 }, crdList)) //ensure no duplicate coords
+		roomList.emplace_back(crd{ curX - 1, curY, 0 }); //LEFT
+	if (!Exists(crd{ curX - 1, curY + 1, 0 }, roomList) && !Exists(crd{ curX - 1, curY + 1, 0 }, crdList)) //ensure no duplicate coords
+		roomList.emplace_back(crd{ curX - 1, curY + 1, 0 }); //TOP LEFT
+
+
+}
+
+int AGameModeCPP::Rotate(int randomDirection)
+{
+	//Input rotation as 0, 2, +1, -1 aka F,B,CW,CCW 
+	//newDirection & direction are absolute world orientations -> 0123 / NESW
+	//Direction is the previously moved direction
+	//New direction is the direction to look at next
+
+   //Try to rotate CW or CCW by adding +1 or -1, might overflow/underflow at 3+1 or 0-1
+   //Forwards changes nothing as F = +0, Backwards is +2 and might overflow.
+	int newDirection = direction + randomDirection;
+
+	//Resolve Overflows & Underflows
+	if (newDirection == -1) newDirection = 3; //If North(0) rotates CCW (-1), loop back to West(3) (only case it will be -1)
+	else if (newDirection == 4) newDirection = 0; //West(3) CW (4) goes North (0), and South(2) Backwards(4) goes North (0)
+	else if (newDirection == 5) newDirection = 1; //West (3) backwards (5) overflows to east (1). (only case it will be 5)
+
+	/* previous method, ignore as have made a shorter version.
+	if (randomDirection == 1 || randomDirection == -1) { //If rotating CW or CCW
+		if (newDirection == 4) newDirection == 0;
+		else if (newDirection == -1) newDirection == 3;
+	}
+	else { //If moving Forwards or Backwards (forwards = +0 , backwards = +2)
+		if (newDirection == 4) newDirection = 0; //If south(2) moves +2(4), loop back to north(0)
+		else if (newDirection == 5) newDirection = 1; //If west(3) moves +2(5), loop back to east(1)
+	}
+	*/
+	return newDirection; //Absolute world direction 0123 / NESW
+}
+
+void AGameModeCPP::generateWalls()
+{
+	for (auto i : crdList) {
+
+		//By default, generate a wall on blank space connected on NESW coordinates from the floor.
+		std::cout << "\nChecking for walls at x " << i.x << " y " << i.y << "\n";
+
+		std::cout << "checking up\n";
+		if (!Exists(crd{ i.x, i.y + 1, 0}, crdList) && !Exists(crd{ i.x, i.y + 1, 1 }, roomList)) { //UP
+			roomList.emplace_back(crd{ i.x, i.y + 1, 1 });
+			std::cout << "placed wall up\n"; wallsPlaced++;
+		}
+
+		std::cout << "checking right\n";
+		if (!Exists(crd{ i.x + 1, i.y, 0 }, crdList) && !Exists(crd{ i.x + 1, i.y, 1 }, roomList)) { //RIGHT
+			roomList.emplace_back(crd{ i.x + 1, i.y, 1 });
+			std::cout << "placed wall right\n"; wallsPlaced++;
+		}
+
+		std::cout << "checking down\n";
+		if (!Exists(crd{ i.x, i.y - 1 , 0}, crdList) && !Exists(crd{ i.x, i.y - 1 , 1 }, roomList)) { //DOWN
+			roomList.emplace_back(crd{ i.x, i.y - 1, 1 });
+			std::cout << "placed wall down\n"; wallsPlaced++;
+		}
+
+		std::cout << "checking left\n";
+		if (!Exists(crd{ i.x - 1, i.y , 0}, crdList) && !Exists(crd{ i.x - 1, i.y , 1 }, roomList)) { //LEFT
+			roomList.emplace_back(crd{ i.x - 1, i.y, 1 });
+			std::cout << "placed wall left\n"; wallsPlaced++;
+		}
+	}
+}
+
+void AGameModeCPP::roomToUnreal()
+{
+	//0 1 2 3 4 5 6
+	//C I L N T X F
+	FActorSpawnParameters spawnParams;
+	spawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	FRotator rotator = FRotator(0, 0, 0);
+	FVector spawnLocation = FVector(0.f, 0.f, 0.f);
+	float realX = 0.f;
+	float realY = 0.f;
+	AActor* pieceToAdd;
+	AMazeNodeMain* 	mazeNode = GetWorld()->SpawnActor<AMazeNodeMain>(MazeNodeMain, spawnLocation, FRotator(0, 0, 0), spawnParams);
+	mazeNode->Destroy(); //got to initialise it for it to compile
+
+	for (int i = 0; i < crdList.size(); i++) {
+
+		realX = crdList[i].x * 2000;
+		realY = crdList[i].y * 2000;
+		spawnLocation = FVector(realX, realY, 0.f);
+
+		mazeNode = GetWorld()->SpawnActor<AMazeNodeMain>(MazeNodeMain, spawnLocation, FRotator(0, 0, 0), spawnParams);
+		if (crdList[i].d == 1) { //If this is a wall
+			mazeNode->setType(6); //sand wall
+			mazeNode->setFloor(-1); //no floor
+		}
+		else { //No wall
+			mazeNode->setType(-1); //no wall
+			mazeNode->setFloor(4); //sand floor
+		}
+		mazeNode->init();
+		AllMazePieces.Add(mazeNode);
+
+		if (crdList[i].x == flagLocation.x && crdList[i].y == flagLocation.y) {
+			pieceToAdd = GetWorld()->SpawnActor<AActor>(FlagBP, spawnLocation, rotator, spawnParams); //FlagNoBase for hole
+			AllMazePieces.Add(pieceToAdd);
+		}
+	}
+
+
 	AllMazePieces.Add(pieceToAdd);
 }
 

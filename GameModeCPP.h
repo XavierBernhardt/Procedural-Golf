@@ -134,9 +134,7 @@ public:
 	std::vector<std::vector<int>> grid;
 
 	//static void MovePlayer(int CurrentHole);
-
 	//int CurrentHole; //current hole
-
 	//float x[8]; //x of spawn
 	//float y[8]; //y of spawn
 	//float z[8]; //z of spawn
@@ -169,20 +167,15 @@ public:
 		//d can be inferred from the previous entry in the array, however it's just easier to store it as a value.
 		// - > it takes little space to store it vs setting up a method to deduce where it came from
 
-		//could create real map back to front using the vector as a stack?
-		/*
-			ignore below
-		bool n, e, s, w; //walls
-		crd() :	x(0), //set to 0,0 by default
-				y(0),
-				n(true), //give it solid walls by default
-				e(true),
-				s(true),
-				w(true) {}
-		*/
+		//------ ROOM GEN ------
+		//0 = floor , 1 = wall
+		//Different to snake gen in that the generator uses 'tank controls'
+		//-> it turns or moves forwards/ back, rather than moving in an absolute direction.
+		//d here is used to decide if it is a wall or floor, rather than direction.
 	};
 
-	//initiate variables
+	//--------SNAKE GEN---------\\
+
 	int curX; //current x
 	int curY; //current y
 	int trackLength; //total amount of spaces to check
@@ -190,9 +183,42 @@ public:
 	std::vector<crd> crdList; //vector to hold coordinates
 
 	//search through crdlist for a crd
-	bool Exists(crd toFind);
+	bool Exists(crd toFind , std::vector<crd> listToCheck);
 	void SnakeToUnreal();
 
+
+
+	//--------ROOM GEN---------\\
+
+	int direction; //0 1 2 3 = N E S W | Previous Direction
+	std::vector<crd> roomList; //vector to hold coordinates of the rooms
+	int minX, minY, maxX, maxY; //to guage how big the map is
+	int wallsPlaced = 0; //ditto walls
+	int roomsPlaced = 0; //just to keep track of how many rooms are placed
+	//Modifiers:
+	UPROPERTY(EditAnywhere, Category = RoomGen)
+		int roomChance; //0-100 chance to spawn a room of some kind
+	UPROPERTY(EditAnywhere, Category = RoomGen)
+		int turnChance; //0-100 chance to turn vs go in a straight line
+	UPROPERTY(EditAnywhere, Category = RoomGen)
+		bool hitSelf = true; //true = path can go through itself 
+	UPROPERTY(EditAnywhere, Category = RoomGen)
+		bool turnBack = true; //true = path can turn backwards (requires hitSelf = true)
+	UPROPERTY(EditAnywhere, Category = RoomGen)
+		bool directionOkay = true; //by default the direction being moved to is safe
+	UPROPERTY(EditAnywhere, Category = RoomGen)
+		int roomPathLength;
+
+	//search through crdlist for a crd
+	int HardCodedRotate(int randomDirection);
+	void MoveBorders();
+	void roomGeneration();
+	void MakeRoom3x3(crd newCoord);
+	int Rotate(int randomDirection);
+	void generateWalls();
+	void roomToUnreal();
+	
+	crd flagLocation = crd{ 0,0,0 };
 
 };
 
