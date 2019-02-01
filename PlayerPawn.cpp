@@ -126,7 +126,6 @@ APlayerPawn::APlayerPawn()
 	//FollowCamera->RelativeRotation = FRotator(-45.f, 0.f, 0.f);
 
 	UpdateHUDStrings();
-
 }
 
 // Called when the game starts or when spawned
@@ -134,6 +133,8 @@ void APlayerPawn::BeginPlay()
 {
 
 	Super::BeginPlay();
+
+
 
 	if (DrawDebugText)
 	GEngine->AddOnScreenDebugMessage(100, 5.0f, FColor::White, TEXT("Begin"));

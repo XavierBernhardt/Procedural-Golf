@@ -5,35 +5,120 @@
 #include "GameModeCPP.h"
 #include "Engine/Canvas.h"
 #include "Engine/Font.h"
+#include "Engine.h"
 #include "CanvasItem.h"
+#include "Runtime/Engine/Classes/GameFramework/PlayerController.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Engine/Classes/Kismet/GameplayStatics.h"
+#include "PlayerController1CPP.h"
 
 AGameHUD::AGameHUD() {
 	static ConstructorHelpers::FObjectFinder<UFont> Font(TEXT("/Engine/EngineFonts/RobotoDistanceField"));
 	HUDFont = Font.Object;
+
 }
 
+
+void AGameHUD::leftClick(float mouseX, float mouseY)
+{
+	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::White, FString::Printf(TEXT("GAMEHUD: Left Click at: x%f, y%f"), mouseX, mouseY));
+
+}
+
+void AGameHUD::updateMouse(float mouseX, float mouseY)
+{
+	GEngine->AddOnScreenDebugMessage(300, 99.0f, FColor::White, FString::Printf(TEXT("GAMEHUD: Mouse Location at: x%f, y%f"), mouseX, mouseY));
+	
+	if (Canvas)
+	{	
+		hx = Canvas->SizeX / 1280.f;
+		hy = Canvas->SizeY / 720.f;
+	}
+
+	h1 = false;
+
+	//if (mouseX > hx * b1.x1	&& mouseY > hy * b1.y1 && mouseX < hx * b1.x1+100 && mouseY < hy * b1.y1+100)
+	if (mouseX > b1.x1	&& mouseY > b1.y1 && mouseX < b1.x1 + 100 && mouseY < b1.y1 + 100)
+		h1 = true;
+}
 
 void AGameHUD::DrawHUD()
 {
 	Super::DrawHUD();
+	if (Canvas)
+	{
+		hx = Canvas->SizeX / 1280.f;
+		hy = Canvas->SizeY / 720.f;
+	}
+	FVector2D ScaleVec(hy * 1.4f, hy * 1.4f);
 
-	// Calculate ratio from 720p
-	const float HUDXRatio = Canvas->SizeX / 1280.f;
-	const float HUDYRatio = Canvas->SizeY / 720.f;
 
-		// Get our vehicle so we can check if we are in car. If we are we don't want onscreen HUD
-	APlayerPawn * PlayerPawn = Cast<APlayerPawn>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
-	if ((PlayerPawn != nullptr))
+
+	FString LevelName = GetWorld()->GetMapName();
+	LevelName.RemoveFromStart(GetWorld()->StreamingLevelsPrefix);
+
+	if (LevelName.Equals("MainMenu")) {
+		
+		//	APlayerController * Controller = Cast<APlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
+		//	if (Controller->GetName() == FString("PlayerController1_C_0")) {
+		//	//Drawing Buttons
+		//
+		//	//Button 1 Box
+		//	/*
+		//		FCanvasTileItem btn1(FVector2D(hx * b1.x1, hy * b1.y1), FVector2D(hx * b1.x1+100, hy * b1.y1+100), (FColor::FromHex(b1.col1)));
+		//	if (h1) 
+		//		btn1 = FCanvasTileItem(FVector2D(hx * b1.x1, hy * b1.y1), FVector2D(hx * b1.x1+100, hy * b1.y1+100), (FColor::FromHex(b1.col2)));*/
+		//	FCanvasTileItem btn1(FVector2D(b1.x1, b1.y1), FVector2D(b1.x1+100, b1.y1+100), (FColor::FromHex(b1.col1)));
+		//	if (h1) 
+		//		btn1 = FCanvasTileItem(FVector2D(b1.x1, b1.y1), FVector2D(b1.x1+100, b1.y1+100), (FColor::FromHex(b1.col2)));
+		//	Canvas->DrawItem(btn1);
+
+		//	//Button 1 Text
+		//	FCanvasTextItem btn1Text(FVector2D(hx * b1.x1+5, hy * b1.y1+5), FText::FromString(FString("Maze Generation")), HUDFont, FLinearColor::White);
+		//	btn1Text.Scale = ScaleVec * 0.8;
+		//	btn1Text.bOutlined = true;
+		//	btn1Text.OutlineColor = FColor::Black;
+		//	btn1Text.EnableShadow(FColor::Black, (FVector2D(1.f, 1.f)));
+		//	Canvas->DrawItem(btn1Text);
+
+
+		//	//Title
+		//	FCanvasTextItem GolfTitle(FVector2D(hx * 50.f, hy * 50.f), FText::FromString(FString("Procedural Golf")), HUDFont, FLinearColor::White);
+		//	GolfTitle.Scale = ScaleVec * 2;
+		//	GolfTitle.bOutlined = true;
+		//	GolfTitle.OutlineColor = FColor::Black;
+		//	GolfTitle.EnableShadow(FColor::Black, (FVector2D(1.f, 1.f)));
+		//	Canvas->DrawItem(GolfTitle);
+		//}
+		///*
+		//		FString string = "controller name : ";
+		//string.Append((Controller->GetName()));
+		//FCanvasTextItem controllerName(FVector2D(hx * 36.f, hy * 570.f), FText::FromString(string), HUDFont, FLinearColor::White);
+		//controllerName.Scale = ScaleVec * 0.76;
+		//controllerName.bOutlined = true;
+		//controllerName.OutlineColor = FColor::Black;
+		//controllerName.EnableShadow(FColor::Black, (FVector2D(1.f, 1.f)));
+		//Canvas->DrawItem(controllerName);
+
+		//*/
+		
+		
+
+	}
+	else {
+		if (LevelName.Equals("MazeGeneration")) {
+		}
+		else if (LevelName.Equals("ControlMap")) {
+		}
+		else if (LevelName.Equals("SnakeGeneration")) {
+		}
+
+		//draw player hud if player is on screen
+		APlayerPawn * PlayerPawn = Cast<APlayerPawn>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
+		if ((PlayerPawn != nullptr))
 		{
-			FVector2D ScaleVec(HUDYRatio * 1.4f, HUDYRatio * 1.4f);
 
 			if (PlayerPawn->canShoot) {
-
-
-
-
 				//FCanvasBoxItem ForceBoxItem2(FVector2D(HUDXRatio * 35.f, HUDYRatio * 620.f), FVector2D(((PlayerPawn->force)-5)*3, 10.f));
 				//ForceBoxItem2.SetColor(FLinearColor::White);
 				//ForceBoxItem2.LineThickness = 0.f;
@@ -57,22 +142,22 @@ void AGameHUD::DrawHUD()
 				//Canvas->DrawItem(ForceTileItemOutline);
 
 				//FCanvasTileItem ForceTileItemBack(FVector2D(HUDXRatio * 35.f, HUDYRatio * 650.f), FVector2D(135.f*2, 10.f*3), (FColor::FromHex("262626")));
-				FCanvasTileItem ForceTileItemBack(FVector2D(HUDXRatio * 35.f, HUDYRatio * 635.f), FVector2D(HUDXRatio*400, HUDYRatio*50), (FColor::FromHex("262626")));
+				FCanvasTileItem ForceTileItemBack(FVector2D(hx * 35.f, hy * 635.f), FVector2D(hx * 400, hy * 50), (FColor::FromHex("262626")));
 				Canvas->DrawItem(ForceTileItemBack);
 
 				//FCanvasTileItem ForceTileItemBar(FVector2D(HUDXRatio * 35.f, HUDYRatio * 650.f), FVector2D(((PlayerPawn->force) - 5) * 2 *3, 10.f*3), (FColor::FromHex("42a010")));
-				FCanvasTileItem ForceTileItemBar(FVector2D(HUDXRatio * 35.f, HUDYRatio * 635.f), FVector2D(HUDXRatio *  (PlayerPawn->force - 5) * 8.9, HUDYRatio * 50), (FLinearColor::LerpUsingHSV( FColor::FromHex("b50e0e"), (FLinearColor::LerpUsingHSV(FColor::FromHex("b50e0e"), FColor::FromHex("42a010"), (PlayerPawn->force - 5) * 2.7 / 100)),(PlayerPawn->force-5)*2/100)));// ("42a010")));
-				Canvas->DrawItem(ForceTileItemBar); 
+				FCanvasTileItem ForceTileItemBar(FVector2D(hx * 35.f, hy * 635.f), FVector2D(hx *  (PlayerPawn->force - 5) * 8.9, hy * 50), (FLinearColor::LerpUsingHSV(FColor::FromHex("b50e0e"), (FLinearColor::LerpUsingHSV(FColor::FromHex("b50e0e"), FColor::FromHex("42a010"), (PlayerPawn->force - 5) * 2.7 / 100)), (PlayerPawn->force - 5) * 2 / 100)));// ("42a010")));
+				Canvas->DrawItem(ForceTileItemBar);
 
-				FCanvasBoxItem ForceTileItemOutline(FVector2D(HUDXRatio * 35.f, HUDYRatio * 635.f), FVector2D(HUDXRatio * 400, HUDYRatio * 50)); 
+				FCanvasBoxItem ForceTileItemOutline(FVector2D(hx * 35.f, hy * 635.f), FVector2D(hx * 400, hy * 50));
 				ForceTileItemOutline.SetColor((FColor::FromHex("1a1a1a")));
 				ForceTileItemOutline.LineThickness = 3.f;
 				Canvas->DrawItem(ForceTileItemOutline);
 
 
 
-				FCanvasTextItem ForceTextItem(FVector2D(HUDXRatio * 36.f, HUDYRatio * 570.f), FText::FromString(FString("Left Mouse:   Shoot\nRight Mouse: Change Shot Force & Angle")), HUDFont, FLinearColor::White);
-				ForceTextItem.Scale = ScaleVec*0.76;
+				FCanvasTextItem ForceTextItem(FVector2D(hx * 36.f, hy * 570.f), FText::FromString(FString("Left Mouse:   Shoot\nRight Mouse: Change Shot Force & Angle")), HUDFont, FLinearColor::White);
+				ForceTextItem.Scale = ScaleVec * 0.76;
 				ForceTextItem.bOutlined = true;
 				ForceTextItem.OutlineColor = FColor::Black;
 				ForceTextItem.EnableShadow(FColor::Black, (FVector2D(1.f, 1.f)));
@@ -83,12 +168,12 @@ void AGameHUD::DrawHUD()
 			}
 
 			FString ShotsTakenString = FString(TEXT("Current Hole: "));
-			ShotsTakenString.Append(FString::FormatAsNumber(PlayerPawn->CurrentHole+1));
+			ShotsTakenString.Append(FString::FormatAsNumber(PlayerPawn->CurrentHole + 1));
 			ShotsTakenString.Append(FString(TEXT("\nShots Taken: ")));
 			ShotsTakenString.Append(FString::FormatAsNumber(PlayerPawn->shotsTaken));
 
 
-			FCanvasTextItem ForceTextItem(FVector2D(HUDXRatio * 36, HUDYRatio * 36), FText::FromString(ShotsTakenString), HUDFont, FLinearColor::White);
+			FCanvasTextItem ForceTextItem(FVector2D(hx * 36, hy * 36), FText::FromString(ShotsTakenString), HUDFont, FLinearColor::White);
 			ForceTextItem.Scale = ScaleVec * 1;
 			ForceTextItem.bOutlined = true;
 			ForceTextItem.OutlineColor = FColor::Black;
@@ -100,7 +185,7 @@ void AGameHUD::DrawHUD()
 				FString FlagHitString = FString(TEXT("Goal Reached! \nShots Taken: "));
 				FlagHitString.Append(FString::FormatAsNumber(PlayerPawn->shotsTaken));
 
-				FCanvasTextItem FlagHitText(FVector2D(HUDXRatio * 640.f + 180, HUDYRatio * 180), FText::FromString(FlagHitString), HUDFont, FLinearColor::Yellow);
+				FCanvasTextItem FlagHitText(FVector2D(hx * 640.f + 180, hy * 180), FText::FromString(FlagHitString), HUDFont, FLinearColor::Yellow);
 				FlagHitText.Scale = ScaleVec * 1.8;
 				FlagHitText.bCentreX = true;
 				Canvas->bCenterX = true;
@@ -109,6 +194,6 @@ void AGameHUD::DrawHUD()
 				FlagHitText.EnableShadow(FColor::Black, (FVector2D(1.f, 1.f)));
 				Canvas->DrawItem(FlagHitText);
 			}
+		}
 	}
-
 }

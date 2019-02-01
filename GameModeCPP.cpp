@@ -33,24 +33,33 @@ void AGameModeCPP::InitGameState()
 
 		FString LevelName = GetWorld()->GetMapName();
 		LevelName.RemoveFromStart(GetWorld()->StreamingLevelsPrefix);
-
+		FActorSpawnParameters spawnParams;
+		spawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 //		GEngine->AddOnScreenDebugMessage(-1, 99.0f, FColor::White, FString::Printf(TEXT("Level=%s"), *LevelName));
 
-
-		if (LevelName.Equals("MazeGeneration")) {
+		if (LevelName.Equals("MainMenu")) {
 			if (DrawDebugText)
-			GEngine->AddOnScreenDebugMessage(110, 99.f, FColor::Cyan, TEXT("Current Level: Maze Generation"));
+				GEngine->AddOnScreenDebugMessage(110, 99.f, FColor::Cyan, TEXT("Current Level: Main Menu"));
 			MazeGenerationBegin();
+
+		}
+
+		else if (LevelName.Equals("MazeGeneration")) {
+			if (DrawDebugText)
+				GEngine->AddOnScreenDebugMessage(110, 99.f, FColor::Cyan, TEXT("Current Level: Maze Generation"));
+			MazeGenerationBegin();
+			GetWorld()->SpawnActor<AActor>(PlayerPawn, FVector(0.f,0.f,0.f), FRotator(0, 0, 0), spawnParams);
 		}
 		else if (LevelName.Equals("ControlMap")) {
 			if (DrawDebugText)
-			GEngine->AddOnScreenDebugMessage(110, 99.f, FColor::Cyan, TEXT("Current Level: Control Map"));
-			
+				GEngine->AddOnScreenDebugMessage(110, 99.f, FColor::Cyan, TEXT("Current Level: Control Map"));
+			GetWorld()->SpawnActor<AActor>(PlayerPawn, FVector(0.f, 0.f, 0.f), FRotator(0, 0, 0), spawnParams);
 		}
-		if (LevelName.Equals("SnakeGeneration")) {
+		else if (LevelName.Equals("SnakeGeneration")) {
 			if (DrawDebugText)
 				GEngine->AddOnScreenDebugMessage(110, 99.f, FColor::Cyan, TEXT("Current Level: Snake Generation"));
 			SnakeGenerationBegin();
+			GetWorld()->SpawnActor<AActor>(PlayerPawn, FVector(0.f, 0.f, 0.f), FRotator(0, 0, 0), spawnParams);
 		}
 		//CurrentHole = 0;
 

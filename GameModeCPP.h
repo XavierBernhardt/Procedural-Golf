@@ -24,6 +24,10 @@ protected:
 	//UPROPERTY(EditAnywhere)
 	//	TSubclassOf<class AController> PlayerController
 	
+
+	UPROPERTY(EditAnywhere, Category = Main)
+		TSubclassOf<class AActor> PlayerPawn;
+
 	//Maze 1
 	UPROPERTY(EditAnywhere, Category = Maze1)
 		TSubclassOf<class AActor> MazeNodeMain;
