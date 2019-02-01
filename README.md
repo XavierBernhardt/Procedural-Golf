@@ -9,9 +9,7 @@ Procedurally generated mini golf game
 Current methods:
 
 Maze Gen -> Creates a solve-able maze
-
 Snake Gen -> Creates a list of coordinates in a long wiggly line
-
 Room Gen -> Creates a tank controlled snake node which runs around dropping rooms then scans itself to make walls (very customisable)
 
 
