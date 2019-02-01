@@ -1,5 +1,6 @@
 # ProceduralGolfV2
-Dissertation project w/ Unreal 4.21 (modified & recompiled from source & installedbuild created version to solve seamjumping bug)
+Dissertation project w/ Unreal 4.21 
+(modified & recompiled from source & installedbuild created version to solve seamjumping bug)
 
 Procedurally generated mini golf game
 
