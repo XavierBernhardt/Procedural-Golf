@@ -31,6 +31,7 @@
 #include "IceActor.h"
 #include "WaterActor.h"
 #include "SpringboardActor.h"
+#include "SlowSandActor.h"
 #include "GameModeCPP.h"
 #include "FlagActor.h"
 
@@ -54,7 +55,11 @@ APlayerPawn::APlayerPawn()
 	dampingDefault = 1.2f;
 	realDamping = dampingDefault;
 	iceDamping = (dampingDefault / 3);
+	sandDamping = (dampingDefault * 4);
+
 	overlappingIce = 0;
+	overlappingSand = 0;
+
 	JumpImpulse = 350000.0f;
 	slowValue = 50; //velocities below this are considered slow
 	touchedFlag = true;
@@ -498,6 +503,13 @@ void APlayerPawn::OnOverlap(UPrimitiveComponent * HitComp, AActor * OtherActor, 
 		Ball->SetAngularDamping(realDamping);
 		Ball->SetLinearDamping(realDamping);
 	}
+	if (Cast<ASlowSandActor>(OtherActor)) {
+		//GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::White, FString::Printf(TEXT("Overlap with ice begun")));
+		overlappingSand++;
+		realDamping = sandDamping;
+		Ball->SetAngularDamping(sandDamping);
+		Ball->SetLinearDamping(sandDamping);
+	}
 	if (Cast<AWaterActor>(OtherActor)) {
 		SetActorLocation(LastSafeLocation);
 		slowMoving = true;
@@ -558,6 +570,17 @@ void APlayerPawn::OnOverlapEnd(UPrimitiveComponent * OverlappedComp, AActor * Ot
 		Ball->SetLinearDamping(realDamping);
 		if (overlappingIce < 1) {
 		//	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Purple, FString::Printf(TEXT("***Ending overlap with ALL ice")));
+			realDamping = dampingDefault;
+		}
+	}
+	if (Cast<ASlowSandActor>(OtherActor)) {
+
+		//GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Emerald, FString::Printf(TEXT("Ending overlap with ice")));
+		overlappingSand--;
+		Ball->SetAngularDamping(realDamping);
+		Ball->SetLinearDamping(realDamping);
+		if (overlappingSand < 1) {
+			//	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Purple, FString::Printf(TEXT("***Ending overlap with ALL ice")));
 			realDamping = dampingDefault;
 		}
 	}

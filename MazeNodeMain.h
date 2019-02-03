@@ -98,6 +98,12 @@ public:
 	UPROPERTY(EditAnywhere, Category = Room)
 		TSubclassOf<class AActor> MazeFloorSAND;
 
+	UPROPERTY(EditAnywhere, Category = Room)
+		TSubclassOf<class AActor> MazeFloorSAND2;
+
+	UPROPERTY(EditAnywhere, Category = Room, meta = (ClampMin = "0", ClampMax = "100", UIMin = "0", UIMax = "100"))
+		int ChanceForSandFloorAlt;
+
 	void setType(int setPiece);
 	void setFloor(int setFloor);
 	void init();

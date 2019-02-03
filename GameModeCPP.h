@@ -96,6 +96,15 @@ protected:
 	UPROPERTY(EditAnywhere, Category = MazeAlt1Chance, meta = (ClampMin = "0", ClampMax = "100", UIMin = "0", UIMax = "100"))
 		int ChanceForAlt1X;
 
+	//Rocks
+	UPROPERTY(EditAnywhere, Category = Rocks)
+		TSubclassOf<class AActor> Rock1;
+
+	UPROPERTY(EditAnywhere, Category = Rocks)
+		TSubclassOf<class AActor> Rock2;
+
+	UPROPERTY(EditAnywhere, Category = Rocks)
+		TSubclassOf<class AActor> Rock3;
 
 
 public:
@@ -205,9 +214,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = RoomGen)
 		bool turnBack = true; //true = path can turn backwards (requires hitSelf = true)
 	UPROPERTY(EditAnywhere, Category = RoomGen)
-		bool directionOkay = true; //by default the direction being moved to is safe
-	UPROPERTY(EditAnywhere, Category = RoomGen)
 		int roomPathLength;
+	UPROPERTY(EditAnywhere, Category = RoomGen , meta = (ClampMin = "0", ClampMax = "100", UIMin = "0", UIMax = "100"))
+		int chanceForRock;//0 for no rocks, 100 for every space to be a rock.
 
 	//search through crdlist for a crd
 	int HardCodedRotate(int randomDirection);
@@ -217,8 +226,10 @@ public:
 	int Rotate(int randomDirection);
 	void generateWalls();
 	void roomToUnreal();
-	
+	bool directionOkay = true; //by default the direction being moved to is safe
 	crd flagLocation = crd{ 0,0,0 };
+
+	AActor* placeRock(float x, float y); //Places a rock at a location then randomly rotates, scales and positions.
 
 };
 

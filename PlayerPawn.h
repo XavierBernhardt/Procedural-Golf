@@ -128,9 +128,10 @@ public:
 	//int cameraRotating;
 	int cameraZooming;
 
-	float incrementForce, realDamping, iceDamping;
+	float incrementForce, realDamping, iceDamping, sandDamping;
 
 	int overlappingIce;
+	int overlappingSand;
 	int CurrentHole;
 	FTimerHandle canSetShootTimer;
 	FTimerHandle flagTimer;

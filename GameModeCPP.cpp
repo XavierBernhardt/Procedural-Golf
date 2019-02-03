@@ -7,6 +7,7 @@
 #include "UnrealMathUtility.h"
 #include "Components/StaticMeshComponent.h"
 #include "MazeNodeMain.h"
+#include "RockActor.h"
 #include <iostream>
 #include <algorithm>
 #include <time.h>       /* time */
@@ -104,10 +105,6 @@ void AGameModeCPP::InitGameState()
 	}
 }
 
-
-
-
-
 //void AGameModeCPP::MovePlayer(int CurrentHole)
 //{
 //	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, TEXT("Moving Player..."));
@@ -124,8 +121,6 @@ void AGameModeCPP::InitGameState()
 //
 //	////GetWorld()->SpawnActor<APawn>(PlayerPawn, spawnLocation, rotator, spawnParams);
 //}
-
-
 
 void AGameModeCPP::MazeGenerationBegin()
 { 
@@ -1478,18 +1473,46 @@ void AGameModeCPP::roomToUnreal()
 		else { //No wall
 			mazeNode->setType(-1); //no wall
 			mazeNode->setFloor(4); //sand floor
+
 		}
 		mazeNode->init();
 		AllMazePieces.Add(mazeNode);
 
-		if (crdList[i].x == flagLocation.x && crdList[i].y == flagLocation.y) {
+		if (crdList[i].x == flagLocation.x && crdList[i].y == flagLocation.y) { //If on the flag coordinates
 			pieceToAdd = GetWorld()->SpawnActor<AActor>(FlagBP, spawnLocation, rotator, spawnParams); //FlagNoBase for hole
-			AllMazePieces.Add(pieceToAdd);
+			AllMazePieces.Add(pieceToAdd); //Add the flag
+		}
+		else { //If not on the flag coordinates
+			if ((crdList[i].d != 1) && (i!=0)) { //If not on a wall & not on the player spawn
+				if (DiceRoll(chanceForRock)) { //Maybe place a rock
+					AllMazePieces.Add(placeRock(realX, realY)); //place a rock & add it to the array
+				}
+			}
 		}
 	}
 
 
 	AllMazePieces.Add(pieceToAdd);
+}
+
+AActor* AGameModeCPP::placeRock(float x, float y)
+{
+	FActorSpawnParameters spawnParams;	spawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn; //force it to always spawn
+	FRotator randomRotation = FRotator(0, float(FMath::RandRange(0, 359)), 0); //Pick a random rotation to use
+	FVector randomHeight = FVector(x, y, float(FMath::RandRange(-30, 0))); //Randomly sink it more into the ground
+
+	int roll = FMath::RandRange(1, 3); //Pick a number 1 to 3
+
+	switch (roll) { //decide which other rock will be used
+	case 1:
+		return GetWorld()->SpawnActor<AActor>(Rock1, randomHeight, randomRotation, spawnParams); //return the rock placed
+		break;
+	case 2:
+		return GetWorld()->SpawnActor<AActor>(Rock2, randomHeight, randomRotation, spawnParams); //return the rock placed
+		break;
+	default:
+		return GetWorld()->SpawnActor<AActor>(Rock3, randomHeight, randomRotation, spawnParams); //return the rock placed
+	}
 }
 
 

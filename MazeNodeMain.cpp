@@ -117,7 +117,10 @@ void AMazeNodeMain::init()
 		myFloor = GetWorld()->SpawnActor<AActor>(MazeFloorHole, GetActorLocation(), GetActorRotation(), spawnParams);
 		break;
 	case 4: //Sand
-		myFloor = GetWorld()->SpawnActor<AActor>(MazeFloorSAND, GetActorLocation(), GetActorRotation(), spawnParams);
+		if (!DiceRoll(ChanceForSandFloorAlt))
+			myFloor = GetWorld()->SpawnActor<AActor>(MazeFloorSAND, GetActorLocation(), GetActorRotation(), spawnParams);
+		else
+			myFloor = GetWorld()->SpawnActor<AActor>(MazeFloorSAND2, GetActorLocation(), GetActorRotation(), spawnParams);
 		break;
 	}
 }
