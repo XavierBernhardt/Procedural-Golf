@@ -183,6 +183,7 @@ public:
 		//d here is used to decide if it is a wall or floor, rather than direction.
 	};
 
+
 	//--------SNAKE GEN---------\\
 
 	int curX; //current x
@@ -217,6 +218,8 @@ public:
 		int roomPathLength;
 	UPROPERTY(EditAnywhere, Category = RoomGen , meta = (ClampMin = "0", ClampMax = "100", UIMin = "0", UIMax = "100"))
 		int chanceForRock;//0 for no rocks, 100 for every space to be a rock.
+	UPROPERTY(EditAnywhere, Category = RoomGen)
+		bool placeCornerWalls;//0 for no rocks, 100 for every space to be a rock.
 
 	//search through crdlist for a crd
 	int HardCodedRotate(int randomDirection);
@@ -232,4 +235,3 @@ public:
 	AActor* placeRock(float x, float y); //Places a rock at a location then randomly rotates, scales and positions.
 
 };
-

@@ -12,10 +12,9 @@
 #include <algorithm>
 #include <time.h>       /* time */
 #include <stdlib.h>     /* srand, rand */
+#include "CaveGeneration.h"
 
 using namespace std;
-
-
 
 AGameModeCPP::AGameModeCPP()
 {
@@ -68,6 +67,19 @@ void AGameModeCPP::InitGameState()
 			roomGeneration();
 			GetWorld()->SpawnActor<AActor>(PlayerPawn, FVector(0.f, 0.f, 0.f), FRotator(0, 0, 0), spawnParams);
 		}
+		else if (LevelName.Equals("CaveGeneration")) {
+			if (DrawDebugText)
+				GEngine->AddOnScreenDebugMessage(110, 99.f, FColor::Cyan, TEXT("Current Level: Cave Generation"));
+
+			std::vector<std::vector<node>> map;
+			CaveGeneration caveGen;
+			map = caveGen.initCaveGen();
+
+			GetWorld()->SpawnActor<AActor>(PlayerPawn, FVector(0.f, 0.f, 0.f), FRotator(0, 0, 0), spawnParams);
+		}
+
+
+
 		//CurrentHole = 0;
 
 		////Code to fill the locations of each starting point
@@ -468,7 +480,7 @@ bool AGameModeCPP::Exists(crd toFind, std::vector<crd> listToCheck)
 
 
 
-//vector<vector<int>> AGameModeCPP::DepthFirstMaze(int size
+//std::vector<std::vector<int>> AGameModeCPP::DepthFirstMaze(int size
 
 
 int AGameModeCPP::generateMaze(int r, int c)
@@ -1223,7 +1235,9 @@ void AGameModeCPP::roomGeneration()
 					std::cout << "North is okay \n";
 					curY++; //move up
 					direction = checkDirs[i];
-					if (!Exists(crd{ curX,curY, 0 }, crdList)) //Search through array if that coordinate is taken) (ensures no duplicate coords)
+					//if (!Exists(crd{ curX,curY, 0 }, crdList)) //Search through array if that coordinate is taken) (ensures no duplicate coords)
+					//Checking for duplicate coordinates has been removed, and instead, the program only checks for duplicates when placing actors for real
+					//Removing constant checks to prevent creating duplicate coordinates speeds up generation time enourmously.
 						crdList.emplace_back(crd{ curX, curY, 0 }); //add it to the list 
 					endMe = true;
 					break;
@@ -1243,7 +1257,7 @@ void AGameModeCPP::roomGeneration()
 					std::cout << "East is okay \n";
 					curX++; //move right
 					direction = checkDirs[i];
-					if (!Exists(crd{ curX,curY, 0 }, crdList)) //Search through array if that coordinate is taken) (ensures no duplicate coords)
+					//if (!Exists(crd{ curX,curY, 0 }, crdList)) //Search through array if that coordinate is taken) (ensures no duplicate coords)
 						crdList.emplace_back(crd{ curX, curY, 0 }); //add it to the list 
 					endMe = true;
 					break;
@@ -1263,7 +1277,7 @@ void AGameModeCPP::roomGeneration()
 					std::cout << "South is okay \n";
 					curY--; //move up
 					direction = checkDirs[i];
-					if (!Exists(crd{ curX,curY, 0 }, crdList)) //Search through array if that coordinate is taken) (ensures no duplicate coords)
+					//if (!Exists(crd{ curX,curY, 0 }, crdList)) //Search through array if that coordinate is taken) (ensures no duplicate coords)
 						crdList.emplace_back(crd{ curX, curY, 0 }); //add it to the list 
 					endMe = true;
 					break;
@@ -1283,7 +1297,7 @@ void AGameModeCPP::roomGeneration()
 					std::cout << "West is okay \n";
 					curX--; //move left
 					direction = checkDirs[i];
-					if (!Exists(crd{ curX,curY, 0 }, crdList)) //Search through array if that coordinate is taken) (ensures no duplicate coords)
+					//if (!Exists(crd{ curX,curY, 0 }, crdList)) //Search through array if that coordinate is taken) (ensures no duplicate coords)
 						crdList.emplace_back(crd{ curX, curY, 0 }); //add it to the list 
 					endMe = true;
 					break;
@@ -1301,15 +1315,10 @@ void AGameModeCPP::roomGeneration()
 			//so that the actual "snake" is seperate from the random rooms it drops
 			//so that if hitself = false, it will still be able to move around 
 			// (otherwise it would create a room, surround itself with floors, and be unable to move)
-
 			//the final product will be both vectors combined to form a big list of floor coordinates
-
 			//Can create different formations of rooms by adjusting these values, this is just a square.
-
 			MakeRoom3x3(crd{ curX, curY, 0 });
-
 			roomsPlaced++;
-
 		}
 	}
 	flagLocation = crd{ curX, curY, 0 };
@@ -1362,25 +1371,56 @@ void AGameModeCPP::MakeRoom3x3(crd newCoord) //slow ish due to having to check f
 	0 0	0    x is the current node, 0 is the floors made around it
 	0 x	0
 	0 0	0
-	*/ 
-	if (!Exists(crd{ curX, curY + 1, 0 } , roomList) && !Exists(crd{ curX, curY + 1, 0 }, crdList)) //ensure no duplicate coords
+	*/
+
+	//Old method which prevented coordinates having coordinates placed on top of them
+	//Current method has moved checking for duplicates to roomToUnreal, where actors are placed for real
+	//Decided that there's no real reason to care about duplicated coordinates, they take up such a tiny space in memory
+	//	and having to constantly run checks to ensure there are no duplicates was slowing down generation
+	//Generation was already fast, mind you, but moving checks to only be done once at the end for each object in the coordinate list,
+	//	instead of having the checks occur every time a coordinate is checking to maybe be placed, speeds up time astronomically.
+	/*
+			if (!Exists(crd{ curX, curY + 1, 0 }, roomList)		&&		!Exists(crd{ curX, curY + 1, 0 }, crdList)) //ensure no duplicate coords
+			{
+				roomList.emplace_back(crd{ curX, curY + 1, 0 }); //TOP
+			}
+			if (!Exists(crd{ curX + 1, curY + 1, 0 }, roomList) &&		!Exists(crd{ curX + 1, curY + 1, 0 }, crdList)) //ensure no duplicate coords
+			{
+				roomList.emplace_back(crd{ curX + 1, curY + 1, 0 }); //TOP RIGHT
+			}
+			if (!Exists(crd{ curX + 1, curY, 0 }, roomList)		&&		!Exists(crd{ curX + 1, curY, 0 }, crdList)) //ensure no duplicate coords
+			{
+				roomList.emplace_back(crd{ curX + 1, curY, 0 }); //RIGHT
+			}
+			if (!Exists(crd{ curX + 1, curY - 1, 0 }, roomList) &&		!Exists(crd{ curX + 1, curY - 1, 0 }, crdList)) //ensure no duplicate coords
+			{
+				roomList.emplace_back(crd{ curX + 1, curY - 1, 0 }); //BOTTOM RIGHT
+			}
+			if (!Exists(crd{ curX, curY - 1, 0 }, roomList)		&&		!Exists(crd{ curX, curY - 1, 0 }, crdList)) //ensure no duplicate coords
+			{
+				roomList.emplace_back(crd{ curX, curY - 1, 0 }); //BOTTOM
+			}
+			if (!Exists(crd{ curX - 1, curY - 1, 0 }, roomList) &&		!Exists(crd{ curX - 1, curY - 1, 0 }, crdList)) //ensure no duplicate coords
+			{
+				roomList.emplace_back(crd{ curX - 1, curY - 1, 0 }); //BOTTOM LEFT
+			}
+			if (!Exists(crd{ curX - 1, curY, 0 }, roomList)		&&		!Exists(crd{ curX - 1, curY, 0 }, crdList)) //ensure no duplicate coords
+			{
+				roomList.emplace_back(crd{ curX - 1, curY, 0 }); //LEFT
+			}
+			if (!Exists(crd{ curX - 1, curY + 1, 0 }, roomList) &&		!Exists(crd{ curX - 1, curY + 1, 0 }, crdList)) //ensure no duplicate coords
+			{
+				roomList.emplace_back(crd{ curX - 1, curY + 1, 0 }); //TOP LEFT
+			}	
+	*/
 		roomList.emplace_back(crd{ curX, curY + 1, 0 }); //TOP
-	if (!Exists(crd{ curX + 1, curY + 1, 0 }, roomList) && !Exists(crd{ curX + 1, curY + 1, 0 }, crdList)) //ensure no duplicate coords
 		roomList.emplace_back(crd{ curX + 1, curY + 1, 0 }); //TOP RIGHT
-	if (!Exists(crd{ curX + 1, curY, 0 }, roomList) && !Exists(crd{ curX + 1, curY, 0 }, crdList)) //ensure no duplicate coords
 		roomList.emplace_back(crd{ curX + 1, curY, 0 }); //RIGHT
-	if (!Exists(crd{ curX + 1, curY - 1, 0 }, roomList) && !Exists(crd{ curX + 1, curY - 1, 0 }, crdList)) //ensure no duplicate coords
 		roomList.emplace_back(crd{ curX + 1, curY - 1, 0 }); //BOTTOM RIGHT
-	if (!Exists(crd{ curX, curY - 1, 0 }, roomList) && !Exists(crd{ curX, curY - 1, 0 }, crdList)) //ensure no duplicate coords
 		roomList.emplace_back(crd{ curX, curY - 1, 0 }); //BOTTOM
-	if (!Exists(crd{ curX - 1, curY - 1, 0 }, roomList) && !Exists(crd{ curX - 1, curY - 1, 0 }, crdList)) //ensure no duplicate coords
-		roomList.emplace_back(crd{ curX - 1, curY - 1, 0 }); //BOTTOM LEFT
-	if (!Exists(crd{ curX - 1, curY, 0 }, roomList) && !Exists(crd{ curX - 1, curY, 0 }, crdList)) //ensure no duplicate coords
+		roomList.emplace_back(crd{ curX - 1, curY - 1, 0 }); //BOTTOM LEFT	
 		roomList.emplace_back(crd{ curX - 1, curY, 0 }); //LEFT
-	if (!Exists(crd{ curX - 1, curY + 1, 0 }, roomList) && !Exists(crd{ curX - 1, curY + 1, 0 }, crdList)) //ensure no duplicate coords
 		roomList.emplace_back(crd{ curX - 1, curY + 1, 0 }); //TOP LEFT
-
-
 }
 
 int AGameModeCPP::Rotate(int randomDirection)
@@ -1414,10 +1454,16 @@ int AGameModeCPP::Rotate(int randomDirection)
 
 void AGameModeCPP::generateWalls()
 {
+
+	//Old method which prevented duplicate walls from being placed
+	/*
 	for (auto i : crdList) {
 
 		//By default, generate a wall on blank space connected on NESW coordinates from the floor.
 		std::cout << "\nChecking for walls at x " << i.x << " y " << i.y << "\n";
+
+		//Note:
+		//roomList is used in this method to store walls.
 
 		std::cout << "checking up\n";
 		if (!Exists(crd{ i.x, i.y + 1, 0}, crdList) && !Exists(crd{ i.x, i.y + 1, 1 }, roomList)) { //UP
@@ -1441,8 +1487,118 @@ void AGameModeCPP::generateWalls()
 		if (!Exists(crd{ i.x - 1, i.y , 0}, crdList) && !Exists(crd{ i.x - 1, i.y , 1 }, roomList)) { //LEFT
 			roomList.emplace_back(crd{ i.x - 1, i.y, 1 });
 			std::cout << "placed wall left\n"; wallsPlaced++;
+		}	
+	}
+	if (placeCornerWalls) { //Seperated from the above loop, so it only checks this if statement once (instead of i:crdlist times)
+		for (auto i : crdList) {
+
+			//Corner walls means NE , SE , SW , NW
+			std::cout << "\nChecking for walls at x " << i.x << " y " << i.y << "\n";
+
+			std::cout << "checking up right\n";
+			if (!Exists(crd{ i.x+1, i.y + 1, 0 }, crdList) && !Exists(crd{ i.x+1, i.y + 1, 1 }, roomList)) { //UP RIGHT
+				roomList.emplace_back(crd{ i.x+1, i.y + 1, 1 });
+				std::cout << "placed wall up\n"; wallsPlaced++;
+			}
+
+			std::cout << "checking down right\n";
+			if (!Exists(crd{ i.x + 1, i.y-1, 0 }, crdList) && !Exists(crd{ i.x + 1, i.y - 1, 1 }, roomList)) { //DOWN RIGHT
+				roomList.emplace_back(crd{ i.x + 1, i.y - 1, 1 });
+				std::cout << "placed wall right\n"; wallsPlaced++;
+			}
+
+			std::cout << "checking down left\n";
+			if (!Exists(crd{ i.x - 1, i.y - 1 , 0 }, crdList) && !Exists(crd{ i.x - 1, i.y - 1 , 1 }, roomList)) { //DOWN LEFT
+				roomList.emplace_back(crd{ i.x - 1, i.y - 1, 1 });
+				std::cout << "placed wall down\n"; wallsPlaced++;
+			}
+
+			std::cout << "checking up left\n";
+			if (!Exists(crd{ i.x - 1, i.y+1 , 0 }, crdList) && !Exists(crd{ i.x - 1, i.y + 1 , 1 }, roomList)) { //UP  LEFT
+				roomList.emplace_back(crd{ i.x - 1, i.y + 1, 1 });
+				std::cout << "placed wall left\n"; wallsPlaced++;
+			}
 		}
 	}
+	
+	
+	*/
+	
+
+	//New method does not care about duplicate walls, as explained in the other roomGen methods
+	//   essentially, crds take up a tiny space in memory and it is not worth running tonnes of checks
+	//   constantly to prevent duplicates from occuring
+	//it is far faster to simply check for duplicates once, at the end of generation.
+	//if memory space was a greater concern, the old methods would be preferred, but for this application, allowing duplicates is faster.
+
+	//Of course, walls are not allowed to spawn on top of floors (the point of this method is to create a border of walls around all the floors)
+	//, so one check is still required to occur.
+
+	for (auto i : crdList) {
+		//By default, generate a wall on any blank space connected on NESW coordinates from the floor.
+		std::cout << "\nChecking for walls at x " << i.x << " y " << i.y << "\n";
+
+		//Note:
+		//roomList is used in this method to store walls.
+
+		std::cout << "checking up\n";
+		if (!Exists(crd{ i.x, i.y + 1, 0 }, crdList)) { //UP
+			roomList.emplace_back(crd{ i.x, i.y + 1, 1 });
+			std::cout << "placed wall up\n"; wallsPlaced++;
+		}
+
+		std::cout << "checking right\n";
+		if (!Exists(crd{ i.x + 1, i.y, 0 }, crdList)) { //RIGHT
+			roomList.emplace_back(crd{ i.x + 1, i.y, 1 });
+			std::cout << "placed wall right\n"; wallsPlaced++;
+		}
+
+		std::cout << "checking down\n";
+		if (!Exists(crd{ i.x, i.y - 1 , 0 }, crdList)) { //DOWN
+			roomList.emplace_back(crd{ i.x, i.y - 1, 1 });
+			std::cout << "placed wall down\n"; wallsPlaced++;
+		}
+
+		std::cout << "checking left\n";
+		if (!Exists(crd{ i.x - 1, i.y , 0 }, crdList)) { //LEFT
+			roomList.emplace_back(crd{ i.x - 1, i.y, 1 });
+			std::cout << "placed wall left\n"; wallsPlaced++;
+		}
+	}
+	if (placeCornerWalls) { //Seperated from the above loop, so it only checks this if statement once (instead of i:crdlist times)
+		for (auto i : crdList) {
+
+			//Corner walls means NE , SE , SW , NW
+			std::cout << "\nChecking for walls at x " << i.x << " y " << i.y << "\n";
+
+			std::cout << "checking up right\n";
+			if (!Exists(crd{ i.x + 1, i.y + 1, 0 }, crdList)) { //UP RIGHT
+				roomList.emplace_back(crd{ i.x + 1, i.y + 1, 1 });
+				std::cout << "placed wall up\n"; wallsPlaced++;
+			}
+
+			std::cout << "checking down right\n";
+			if (!Exists(crd{ i.x + 1, i.y - 1, 0 }, crdList)) { //DOWN RIGHT
+				roomList.emplace_back(crd{ i.x + 1, i.y - 1, 1 });
+				std::cout << "placed wall right\n"; wallsPlaced++;
+			}
+
+			std::cout << "checking down left\n";
+			if (!Exists(crd{ i.x - 1, i.y - 1 , 0 }, crdList)) { //DOWN LEFT
+				roomList.emplace_back(crd{ i.x - 1, i.y - 1, 1 });
+				std::cout << "placed wall down\n"; wallsPlaced++;
+			}
+
+			std::cout << "checking up left\n";
+			if (!Exists(crd{ i.x - 1, i.y + 1 , 0 }, crdList)) { //UP  LEFT
+				roomList.emplace_back(crd{ i.x - 1, i.y + 1, 1 });
+				std::cout << "placed wall left\n"; wallsPlaced++;
+			}
+		}
+	}
+
+
+
 }
 
 void AGameModeCPP::roomToUnreal()
@@ -1456,8 +1612,8 @@ void AGameModeCPP::roomToUnreal()
 	float realX = 0.f;
 	float realY = 0.f;
 	AActor* pieceToAdd;
-	AMazeNodeMain* 	mazeNode = GetWorld()->SpawnActor<AMazeNodeMain>(MazeNodeMain, spawnLocation, FRotator(0, 0, 0), spawnParams);
-	mazeNode->Destroy(); //got to initialise it for it to compile
+	//AMazeNodeMain* 	mazeNode = GetWorld()->SpawnActor<AMazeNodeMain>(MazeNodeMain, spawnLocation, FRotator(0, 0, 0), spawnParams);
+	//mazeNode->Destroy(); //got to initialise it for it to compile
 
 	for (int i = 0; i < crdList.size(); i++) {
 
@@ -1465,18 +1621,24 @@ void AGameModeCPP::roomToUnreal()
 		realY = crdList[i].y * 2000;
 		spawnLocation = FVector(realX, realY, 0.f);
 
-		mazeNode = GetWorld()->SpawnActor<AMazeNodeMain>(MazeNodeMain, spawnLocation, FRotator(0, 0, 0), spawnParams);
-		if (crdList[i].d == 1) { //If this is a wall
-			mazeNode->setType(6); //sand wall
-			mazeNode->setFloor(-1); //no floor
-		}
-		else { //No wall
-			mazeNode->setType(-1); //no wall
-			mazeNode->setFloor(4); //sand floor
+		//roomList here is used to store a list of all coordinates used, to prevent duplicates.
+		//Duplicate checking was moved here so it only runs once per coordinate, as opposed to for every possible check each coordinate makes.
 
+		if (!Exists(crdList[i], roomList)) //avoid placing duplicate nodes with only one check per loop
+		{ 
+			AMazeNodeMain* mazeNode = GetWorld()->SpawnActor<AMazeNodeMain>(MazeNodeMain, spawnLocation, FRotator(0, 0, 0), spawnParams);
+			if (crdList[i].d == 1) { //If this is a wall
+				mazeNode->setType(6); //sand wall
+				mazeNode->setFloor(-1); //no floor
+			}
+			else { //If this is a floor
+				mazeNode->setType(-1); //no wall
+				mazeNode->setFloor(4); //sand floor
+			}
+			mazeNode->init();
+			AllMazePieces.Add(mazeNode);
+			roomList.emplace_back(crdList[i]);
 		}
-		mazeNode->init();
-		AllMazePieces.Add(mazeNode);
 
 		if (crdList[i].x == flagLocation.x && crdList[i].y == flagLocation.y) { //If on the flag coordinates
 			pieceToAdd = GetWorld()->SpawnActor<AActor>(FlagBP, spawnLocation, rotator, spawnParams); //FlagNoBase for hole
@@ -1490,9 +1652,9 @@ void AGameModeCPP::roomToUnreal()
 			}
 		}
 	}
-
-
-	AllMazePieces.Add(pieceToAdd);
+	//Relinquish memory 
+	roomList.clear(); //empty the list of placed objects 
+	crdList.clear(); //empty the list of coordinates
 }
 
 AActor* AGameModeCPP::placeRock(float x, float y)
@@ -1544,7 +1706,7 @@ void AGameModeCPP::oldDepthFirstMaze(int size)
 	////although rectangles could be used to make wide short levels.
 	////could modify this to add those later.
 
-	//vector<vector<int>> newGrid(size, vector<int>(size)); //create the grid of sizexsize
+	//std::vector<std::vector<int>> newGrid(size, vector<int>(size)); //create the grid of sizexsize
 
 	//startX = FMath::RandRange(0, size); //later these will be public variables for playerstart.
 	//startY = FMath::RandRange(0, size);
@@ -1767,3 +1929,4 @@ void AGameModeCPP::oldDepthFirstMaze(int size)
 //	AllMazePieces.Add(pieceToAdd);
 //
 //}
+

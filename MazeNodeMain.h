@@ -19,7 +19,7 @@ public:
 
 protected:
 	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
+	//virtual void BeginPlay() override;
 	virtual void Destroyed() override;
 	int type;
 	int floor;
@@ -28,7 +28,7 @@ protected:
 
 public:	
 	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+	//virtual void Tick(float DeltaTime) override;
 	UPROPERTY(EditAnywhere, Category = Maze1)
 		TSubclassOf<class AActor> MazeN;
 

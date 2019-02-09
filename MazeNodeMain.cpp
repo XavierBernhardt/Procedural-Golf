@@ -10,7 +10,7 @@
 AMazeNodeMain::AMazeNodeMain()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 	type = 0;
 	floor = 0;
 
@@ -31,10 +31,10 @@ AMazeNodeMain::AMazeNodeMain()
 //-1 just generates nothing for floor / wall 
 
 // Called when the game starts or when spawned
-void AMazeNodeMain::BeginPlay()
-{
-	Super::BeginPlay();
-}
+//void AMazeNodeMain::BeginPlay()
+//{
+//	Super::BeginPlay();
+//}
 
 void AMazeNodeMain::Destroyed()
 {
@@ -45,12 +45,12 @@ void AMazeNodeMain::Destroyed()
 
 }
 
-// Called every frame
-void AMazeNodeMain::Tick(float DeltaTime) //might be able to disable this
-{
-	Super::Tick(DeltaTime);
-
-}
+//// Called every frame
+//void AMazeNodeMain::Tick(float DeltaTime) //might be able to disable this
+//{
+//	Super::Tick(DeltaTime);
+//
+//}
 
 void AMazeNodeMain::setType(int setType)
 {
