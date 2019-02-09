@@ -16,15 +16,16 @@ AMazeNodeMain::AMazeNodeMain()
 
 }	
 //Types:
-//0 1 2 3 4 5 6
-//C I L N T X S
+//0 1 2 3 4 5
+//C I L N T X 
 //Default: C/0
 //type = 0;
-// 6 / S = SAND
+// 6 = SAND
+// 7 = Cave
 
 //Floor:
-//0			1		2		4
-//Grass		Ice		Hole	Sand
+//0			1		2		3		4	
+//Grass		Ice		Hole	Cave	Sand
 //Default			(unused)
 //floor = 0;
 
@@ -104,17 +105,23 @@ void AMazeNodeMain::init()
 		else
 			myPiece = GetWorld()->SpawnActor<AActor>(MazeXAlt2, GetActorLocation(), GetActorRotation(), spawnParams);
 		break;
-	case 6: //S(and)
+	case 6: //Sand
 		myPiece = GetWorld()->SpawnActor<AActor>(MazeWallSAND, GetActorLocation(), GetActorRotation(), spawnParams);
+		break;
+	case 7: //Cave
+		myPiece = GetWorld()->SpawnActor<AActor>(MazeWallCave, GetActorLocation(), GetActorRotation(), spawnParams);
 		break;
 	break;
 	}
 	switch (floor) {
-	case 0: //flat
+	case 0: //Flat
 		myFloor = GetWorld()->SpawnActor<AActor>(MazeFloor, GetActorLocation(), GetActorRotation(), spawnParams);
 		break;
-	case 2: //hole
+	case 2: //Hole
 		myFloor = GetWorld()->SpawnActor<AActor>(MazeFloorHole, GetActorLocation(), GetActorRotation(), spawnParams);
+		break;
+	case 3: //Cave
+		myFloor = GetWorld()->SpawnActor<AActor>(MazeFloorCave, GetActorLocation(), GetActorRotation(), spawnParams);
 		break;
 	case 4: //Sand
 		if (!DiceRoll(ChanceForSandFloorAlt))

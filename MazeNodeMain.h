@@ -90,7 +90,7 @@ public:
 	UPROPERTY(EditAnywhere, Category = MazeAlt1Chance, meta = (ClampMin = "0", ClampMax = "100", UIMin = "0", UIMax = "100"))
 		int ChanceForAlt2X;
 
-
+	//Room
 
 	UPROPERTY(EditAnywhere, Category = Room)
 		TSubclassOf<class AActor> MazeWallSAND;
@@ -100,6 +100,16 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = Room)
 		TSubclassOf<class AActor> MazeFloorSAND2;
+
+	//Cave
+
+	UPROPERTY(EditAnywhere, Category = Cave)
+		TSubclassOf<class AActor> MazeWallCave;
+
+	UPROPERTY(EditAnywhere, Category = Cave)
+		TSubclassOf<class AActor> MazeFloorCave;
+
+
 
 	UPROPERTY(EditAnywhere, Category = Room, meta = (ClampMin = "0", ClampMax = "100", UIMin = "0", UIMax = "100"))
 		int ChanceForSandFloorAlt;

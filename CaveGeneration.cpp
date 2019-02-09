@@ -527,9 +527,9 @@ vector<vector<node>> CaveGeneration::caveGenerationBegin()
 	srand(time(0)); //Re-seed the random generator
 	maxCaveX = 20; //Max size of the map horizontally
 	maxCaveY = 20; //Max size of the map vertically
-	minSize = (maxCaveX * maxCaveY) * 0.30; //Size of the final map should be at least this size (rounded down due to dividing an int)
+	minSize = (maxCaveX * maxCaveY) * 0.35; //Size of the final map should be at least this size (rounded down due to dividing an int)
 	std::cout << "Total number of nodes: " << (maxCaveX * maxCaveY) << ", Minimum cave size: " << minSize << "\n";
-	createChance = 43; //Chance of cell being a wall or cell at start
+	createChance = 41; //Chance of cell being a wall or cell at start
 	maxCycles = 4; //How many cycles are going to be run
 	cavernList.clear();
 	groupFound = 0;

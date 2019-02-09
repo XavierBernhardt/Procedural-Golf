@@ -12,7 +12,6 @@
 #include <algorithm>
 #include <time.h>       /* time */
 #include <stdlib.h>     /* srand, rand */
-#include "CaveGeneration.h"
 
 using namespace std;
 
@@ -71,11 +70,10 @@ void AGameModeCPP::InitGameState()
 			if (DrawDebugText)
 				GEngine->AddOnScreenDebugMessage(110, 99.f, FColor::Cyan, TEXT("Current Level: Cave Generation"));
 
-			std::vector<std::vector<node>> map;
 			CaveGeneration caveGen;
-			map = caveGen.initCaveGen();
-
-			GetWorld()->SpawnActor<AActor>(PlayerPawn, FVector(0.f, 0.f, 0.f), FRotator(0, 0, 0), spawnParams);
+			caveMap = caveGen.initCaveGen();
+			caveToUnreal();
+			GetWorld()->SpawnActor<AActor>(PlayerPawn, FVector(startX, startY, 0.f), FRotator(0, 0, 0), spawnParams);
 		}
 
 
@@ -805,11 +803,16 @@ void AGameModeCPP::resetMap()
 		}
 		else if (LevelName.Equals("ControlMap")) {
 		}
-		if (LevelName.Equals("SnakeGeneration")) {
+		else if (LevelName.Equals("SnakeGeneration")) {
 			SnakeGenerationBegin();
 		}
-		if (LevelName.Equals("RoomGeneration")) {
+		else if (LevelName.Equals("RoomGeneration")) {
 			roomGeneration();
+		}
+		else if (LevelName.Equals("CaveGeneration")) {
+			CaveGeneration caveGen;
+			caveMap = caveGen.initCaveGen();
+			caveToUnreal();
 		}
 	}
 }
@@ -1674,6 +1677,51 @@ AActor* AGameModeCPP::placeRock(float x, float y)
 		break;
 	default:
 		return GetWorld()->SpawnActor<AActor>(Rock3, randomHeight, randomRotation, spawnParams); //return the rock placed
+	}
+}
+
+void AGameModeCPP::caveToUnreal()
+{
+
+
+	//0 1 2 3 4 5 6
+	//C I L N T X F
+	FActorSpawnParameters spawnParams;
+	spawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	FRotator rotator = FRotator(0, 0, 0);
+	FVector spawnLocation = FVector(0.f, 0.f, 0.f);
+	float realX = 0.f;
+	float realY = 0.f;
+	AActor* pieceToAdd;
+
+	for (auto x = 0; x < caveMap.size(); x++) { //Loop through horizontal
+		for (auto y = 0; y < caveMap[0].size(); y++) { //Loop through vertical
+			realX = x * 1000; //Cave floors/walls are half the size of the other maps
+			realY = y * 1000;
+			spawnLocation = FVector(realX, realY, 0.f);
+			AMazeNodeMain* mazeNode = GetWorld()->SpawnActor<AMazeNodeMain>(MazeNodeMain, spawnLocation, FRotator(0, 0, 0), spawnParams);
+
+			if (caveMap[x][y].type == 1) {  //If this is a wall
+				mazeNode->setType(7); //Cave wall
+				mazeNode->setFloor(-1); //no floor
+			}
+			else { //Type: 0, 2, 3 are all floors (floor / floor + player start / floor + flag end)
+				mazeNode->setType(-1); //no wall
+				mazeNode->setFloor(3); //Cave floor
+			}
+
+			mazeNode->init();
+			AllMazePieces.Add(mazeNode);
+
+			if (caveMap[x][y].type == 3) { //Flag
+				pieceToAdd = GetWorld()->SpawnActor<AActor>(FlagBP, spawnLocation, rotator, spawnParams); //FlagNoBase for hole
+				AllMazePieces.Add(pieceToAdd); //Add the flag
+			}
+			else if (caveMap[x][y].type == 2) { //Player Spawn
+				startX = realX;
+				startY = realY;
+			}
+		}
 	}
 }
 

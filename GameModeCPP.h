@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "GameFramework/GameMode.h"
 #include "vector"
+#include "CaveGeneration.h"
+
 #include "GameModeCPP.generated.h"
 
 UCLASS()
@@ -123,7 +125,7 @@ public:
 	float startY;
 	float endX;
 	float endY;
-	bool DrawDebugText = false;
+	bool DrawDebugText = true; //--------------------------------------------------------------------debug text
 	TArray<AActor*> AllMazePieces;
 
 	TArray<TSubclassOf<AActor>> MazePieces;
@@ -234,4 +236,7 @@ public:
 
 	AActor* placeRock(float x, float y); //Places a rock at a location then randomly rotates, scales and positions.
 
+
+	std::vector<std::vector<node>> caveMap;
+	void caveToUnreal();
 };
