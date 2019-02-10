@@ -71,7 +71,7 @@ void AGameModeCPP::InitGameState()
 				GEngine->AddOnScreenDebugMessage(110, 99.f, FColor::Cyan, TEXT("Current Level: Cave Generation"));
 
 			CaveGeneration caveGen;
-			caveMap = caveGen.initCaveGen();
+			caveMap = caveGen.initCaveGen(maxCaveX, maxCaveY, createChance, maxCyclesInitial, maxCyclesFinal, minSizeMultiplier);
 			caveToUnreal();
 			GetWorld()->SpawnActor<AActor>(PlayerPawn, FVector(startX, startY, 0.f), FRotator(0, 0, 0), spawnParams);
 		}
@@ -810,8 +810,8 @@ void AGameModeCPP::resetMap()
 			roomGeneration();
 		}
 		else if (LevelName.Equals("CaveGeneration")) {
-			CaveGeneration caveGen;
-			caveMap = caveGen.initCaveGen();
+			CaveGeneration caveGen; //int _maxCaveX, int _maxCaveY, int _createChance, int _maxCyclesInitial, int _maxCyclesFinal, float _minSizeMultiplier
+			caveMap = caveGen.initCaveGen(maxCaveX, maxCaveY, createChance, maxCyclesInitial, maxCyclesFinal, minSizeMultiplier);
 			caveToUnreal();
 		}
 	}

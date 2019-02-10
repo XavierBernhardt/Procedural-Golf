@@ -7,8 +7,17 @@
 
 using namespace::std;
 
-vector<vector<node>> CaveGeneration::initCaveGen()
+vector<vector<node>> CaveGeneration::initCaveGen(int _maxCaveX, int _maxCaveY, int _createChance, int _maxCyclesInitial, int _maxCyclesFinal, float _minSizeMultiplier)
 {
+
+	maxCaveX = _maxCaveX; //Max size of the map horizontally
+	maxCaveY = _maxCaveY; //Max size of the map vertically
+	createChance = _createChance; //Chance of cell being a wall or cell at start
+	maxCyclesInitial = _maxCyclesInitial; //How many cycles are going to be run at the start
+	maxCyclesFinal = _maxCyclesFinal; //How many cycles are going to be run at the end
+	minSize = (maxCaveX * maxCaveY) * _minSizeMultiplier; //Size of the final map should be at least this size (rounded down due to dividing an int)
+
+
 
 	retryAttempts = 0;
 	maxRetryAttempts = 0; //for debug
@@ -335,7 +344,7 @@ vector<vector<node>> CaveGeneration::connectCaverns(vector<vector<node>> map)
 	}
 	cavernSize = 0;
 
-	for (int i = 0; i < maxCycles; i++) {
+	for (int i = 0; i < maxCyclesFinal; i++) {
 		map = cycleMap(map, maxCaveX, maxCaveY);
 	}
 
@@ -525,18 +534,16 @@ vector<vector<node>> CaveGeneration::caveGenerationBegin()
 {
 	needsRetry = false;
 	srand(time(0)); //Re-seed the random generator
-	maxCaveX = 20; //Max size of the map horizontally
-	maxCaveY = 20; //Max size of the map vertically
-	minSize = (maxCaveX * maxCaveY) * 0.35; //Size of the final map should be at least this size (rounded down due to dividing an int)
+
+
+
 	std::cout << "Total number of nodes: " << (maxCaveX * maxCaveY) << ", Minimum cave size: " << minSize << "\n";
-	createChance = 41; //Chance of cell being a wall or cell at start
-	maxCycles = 4; //How many cycles are going to be run
 	cavernList.clear();
 	groupFound = 0;
 
 	vector<vector<node>> map = createMap(maxCaveX, maxCaveY); //Create an initial (noisy) map of maxX and maxY size
 
-	for (auto c = 0; c <= maxCycles; c++) { //Cycle the smoothing method maxCycles amount of times
+	for (auto c = 0; c <= maxCyclesInitial; c++) { //Cycle the smoothing method maxCycles amount of times
 		std::cout << "Cycle " << c << "\n";
 		printMap(map, 0);
 		map = cycleMap(map, maxCaveX, maxCaveY);  //Run the map through the smooth method

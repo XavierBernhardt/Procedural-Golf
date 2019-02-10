@@ -33,13 +33,14 @@ class PROCEDURALGOLFV2_API CaveGeneration
 public:
 	int maxCaveX, maxCaveY; //Max size of the map horizontally & vertically
 	int createChance; //Chance of a cell being a wall or cell at start
-	int maxCycles; //How many cycles are going to be ran
+	int maxCyclesInitial; //How many cycles are going to be ran
 	int currentGroup; //Used in labeling caverns, declared here so it can double as the value of the final group
 	int groupFound; //Used in connecting caverns to show the cavern being connected to's value
 	int cavernSize; //Used in labeling the size of the newly created cavern
 	int biggestCaveID; //Used to store the value of the biggest cave (-1 is none are big enough)
 	int biggestCaveSize; //Used to store the size of the biggest cave 
 	int retryAttempts; //see below
+	int maxCyclesFinal;
 	bool needsRetry;
 	int maxRetryAttempts; //How many attempts at creating a cave should be made (DEBUG ONLY - causes stack overflow if too high)
 	int minSize; //The minimum size that the final tunnel system should be to be a valid map (usually like 30-40% of the total grid)
@@ -68,6 +69,6 @@ public:
 	vector<coord> findPath(coord start, coord end); //Simple path finding algorithm, returns a list of coordinates to process (tunnel through)
 	vector<vector<node>> generatePlayerAndFlag(vector<vector<node>> map); //Attempts to generate two coordinates for player start and the end flag
 
-	vector<vector<node>> initCaveGen();
+	vector<vector<node>> initCaveGen(int _maxCaveX, int _maxCaveY, int _createChance, int _maxCyclesInitial, int _maxCyclesFinal, float _minSizeMultiplier);
 
 };

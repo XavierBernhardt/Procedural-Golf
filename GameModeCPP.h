@@ -109,6 +109,20 @@ protected:
 		TSubclassOf<class AActor> Rock3;
 
 
+	//Cave Gen
+	UPROPERTY(EditAnywhere, Category = Cave)
+		int maxCaveX;
+	UPROPERTY(EditAnywhere, Category = Cave)
+		int maxCaveY;
+	UPROPERTY(EditAnywhere, Category = Cave)
+		int createChance;
+	UPROPERTY(EditAnywhere, Category = Cave)
+		int maxCyclesInitial;
+	UPROPERTY(EditAnywhere, Category = Cave)
+		int maxCyclesFinal;
+	UPROPERTY(EditAnywhere, Category = Cave)
+		float minSizeMultiplier;
+
 public:
 
 
