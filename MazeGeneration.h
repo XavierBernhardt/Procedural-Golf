@@ -12,19 +12,20 @@ class PROCEDURALGOLFV2_API MazeGeneration
 {
 public:
 
-	static const int mazeSize = 5;
-	static const int pathLength = 9;
+	int mazeWidth; //Must be odd
+	int mazeHeight; //Must be odd
+
+	int pathLength;
 	float startX, startY, endX, endY;
 	bool DrawDebugText = true; 
-	int maze[mazeSize][mazeSize];
 	bool deadEndHit = false;
 	int row, col;
 	bool noDeadEndsAllowed;
 	
 	TArray<AActor*> AllMazePieces;
-	std::vector<std::vector<int>> grid;
-
-	void initMazeGen();
+	std::vector<std::vector<int>> maze;
+	
+	std::vector<std::vector<int>> initMazeGen(int _mazeWidth, int _mazeHeight, int _pathLength, bool _noDeadEndsAllowed);
 	void depthFirstMaze();
 	int recursiveMaze(int r, int c);
 	void PrintMaze();

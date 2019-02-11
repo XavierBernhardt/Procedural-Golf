@@ -6,6 +6,9 @@
 #include "GameFramework/GameMode.h"
 #include "vector"
 #include "CaveGeneration.h"
+#include "MazeGeneration.h"
+#include "SnakeGeneration.h"
+#include "RoomGeneration.h"
 
 #include "GameModeCPP.generated.h"
 
@@ -108,13 +111,22 @@ protected:
 	UPROPERTY(EditAnywhere, Category = Rocks)
 		TSubclassOf<class AActor> Rock3;
 
+	//Maze Gen
+	UPROPERTY(EditAnywhere, Category = Maze , meta = (ClampMin = "5", UIMin = "5"))
+		int mazeWidth;
+	UPROPERTY(EditAnywhere, Category = Maze, meta = (ClampMin = "5", UIMin = "5"))
+		int mazeHeight;
+	UPROPERTY(EditAnywhere, Category = Maze, meta = (ClampMin = "1", UIMin = "1"))
+		int pathLength;
+	UPROPERTY(EditAnywhere, Category = Maze)
+		bool noDeadEndsAllowed;
 
 	//Cave Gen
-	UPROPERTY(EditAnywhere, Category = Cave)
+	UPROPERTY(EditAnywhere, Category = Cave, meta = (ClampMin = "3", UIMin = "3"))
 		int maxCaveX;
-	UPROPERTY(EditAnywhere, Category = Cave)
+	UPROPERTY(EditAnywhere, Category = Cave, meta = (ClampMin = "3", UIMin = "3"))
 		int maxCaveY;
-	UPROPERTY(EditAnywhere, Category = Cave)
+	UPROPERTY(EditAnywhere, Category = Cave, meta = (ClampMin = "0", ClampMax = "100", UIMin = "0", UIMax = "100"))
 		int createChance;
 	UPROPERTY(EditAnywhere, Category = Cave)
 		int maxCyclesInitial;
@@ -132,51 +144,25 @@ public:
 	void MazeGenerationBegin(); //add in things like "nodeadends" here, etc.
 	void SnakeGenerationBegin();
 
+	std::vector<std::vector<int>> maze;
 
-	static const int mazeSize = 5;
-	static const int pathLength = 9;
-	float startX;
-	float startY;
-	float endX;
-	float endY;
 	bool DrawDebugText = true; //--------------------------------------------------------------------debug text
+
 	TArray<AActor*> AllMazePieces;
 
 	TArray<TSubclassOf<AActor>> MazePieces;
 	TArray<TSubclassOf<AActor>> MazePiecesAlt1;
 
-	//static int mazeSize = 5;
-	int maze[mazeSize][mazeSize];
-	//int pathLength;
-	bool deadEndHit = false;
-
-	UPROPERTY(EditAnywhere)
-	bool noDeadEndsAllowed;
-
-	//vector<vector<int>> DepthFirstMaze(int size);
-	void oldDepthFirstMaze(int size);
-
 	std::vector<std::vector<int>> grid;
 
-	//static void MovePlayer(int CurrentHole);
-	//int CurrentHole; //current hole
-	//float x[8]; //x of spawn
-	//float y[8]; //y of spawn
-	//float z[8]; //z of spawn
-	//float r[8]; //yaw rotation of spawn
-	int generateMaze(int r, int c);
-	void PrintMaze();
-	void depthFirstMaze();
 	void DFMtoUnreal();
 	int row, col;
-
 	void placePiece(int x, int y);
 	TSubclassOf<class AActor> pieceToPlace = MazeN; //by default place a solid block
 	int pieceToRotate = 0; //rotation is 0 by default
 	void resetMap();
 	bool DiceRoll(int percentage);
 	int pieceType;
-	void GenerateSnakeMaze();
 
 	//TArray<FVector> usedLocations;
 	//FVector currentLocation = FVector(0, 0, 0);
@@ -185,19 +171,6 @@ public:
 	//int trackLength = 3;
 
 
-	//coordinate struct
-	struct crd {
-		int x, y; //x, y = coordinates
-		int d;	//	d = direction , -1 = left , 0 = up , 1 = right
-		//d can be inferred from the previous entry in the array, however it's just easier to store it as a value.
-		// - > it takes little space to store it vs setting up a method to deduce where it came from
-
-		//------ ROOM GEN ------
-		//0 = floor , 1 = wall
-		//Different to snake gen in that the generator uses 'tank controls'
-		//-> it turns or moves forwards/ back, rather than moving in an absolute direction.
-		//d here is used to decide if it is a wall or floor, rather than direction.
-	};
 
 
 	//--------SNAKE GEN---------\\
@@ -211,7 +184,8 @@ public:
 	//search through crdlist for a crd
 	bool Exists(crd toFind , std::vector<crd> listToCheck);
 	void SnakeToUnreal();
-
+	UPROPERTY(EditAnywhere, Category = Snake)
+		int snakeTrackLength; //0-100 chance to spawn a room of some kind
 
 
 	//--------ROOM GEN---------\\
@@ -249,8 +223,14 @@ public:
 	crd flagLocation = crd{ 0,0,0 };
 
 	AActor* placeRock(float x, float y); //Places a rock at a location then randomly rotates, scales and positions.
-
+	int startX, startY;
 
 	std::vector<std::vector<node>> caveMap;
 	void caveToUnreal();
+	CaveGeneration caveGen;
+
+	MazeGeneration mazeGen;
+	SnakeGeneration snakeGen;
+	RoomGeneration roomGen;
+
 };

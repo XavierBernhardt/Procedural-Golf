@@ -177,6 +177,7 @@ public:
 
 	void SetNextFlag(FVector location);
 	void RestartPressed();
+	void ResetGamePressed();
 	bool IsItNewLevel = false;
 
 	bool DrawDebugText = false;

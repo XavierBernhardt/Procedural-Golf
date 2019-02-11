@@ -351,6 +351,7 @@ void APlayerPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	PlayerInputComponent->BindAction("RightClick", IE_Released, this, &APlayerPawn::RightRelease);
 
 	PlayerInputComponent->BindAction("RestartPressed", IE_Pressed, this, &APlayerPawn::RestartPressed);
+	PlayerInputComponent->BindAction("ResetGamePressed", IE_Pressed, this, &APlayerPawn::ResetGamePressed);
 
 
 	PlayerInputComponent->BindAxis("TurnRate", this, &APlayerPawn::TurnAtRate);
@@ -749,5 +750,13 @@ void APlayerPawn::RestartPressed() {
 	if (DrawDebugText)
 	GEngine->AddOnScreenDebugMessage(105, 3.0f, FColor::Green, FString::Printf(TEXT("RESTARTING")));
 	UGameplayStatics::OpenLevel(this, FName(*GetWorld()->GetName()), false);
+}
+
+
+void APlayerPawn::ResetGamePressed() {
+	GEngine->ClearOnScreenDebugMessages();
+	if (DrawDebugText)
+		GEngine->AddOnScreenDebugMessage(105, 3.0f, FColor::Green, FString::Printf(TEXT("RESTARTING")));
+	UGameplayStatics::OpenLevel(this, FName("MainMenu"), false);
 }
 

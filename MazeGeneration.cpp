@@ -9,11 +9,94 @@
 #include <algorithm>
 #include <time.h>       /* time */
 #include <stdlib.h>     /* srand, rand */
-
-
-
 using namespace std;
-int MazeGeneration::generateMaze(int r, int c)
+
+
+std::vector<std::vector<int>> MazeGeneration::initMazeGen(int _mazeWidth, int _mazeHeight, int _pathLength, bool _noDeadEndsAllowed)
+{
+
+	mazeWidth = _mazeWidth;
+	mazeHeight = _mazeHeight;
+	pathLength = _pathLength;
+	noDeadEndsAllowed = _noDeadEndsAllowed;
+
+	depthFirstMaze();
+
+	return maze;
+}
+
+
+
+
+void MazeGeneration::depthFirstMaze()
+{
+	if (DrawDebugText)
+		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::White, FString::Printf(TEXT("**DepthFirstMaze Begin**")));
+	cout << "Begin \n";
+
+	maze.resize(mazeWidth, vector<int>(mazeHeight)); //Resize the vector to the maximum x, y borders
+
+	for (int i = 0; i < mazeWidth; i++) {
+		for (int j = 0; j < mazeHeight; j++) {
+			maze[i][j] = 1;
+		}
+
+	}
+
+
+	srand(time(NULL));
+
+	//generate a random place along the edge
+
+
+	if (!noDeadEndsAllowed) {
+		int whatside = rand() % 4;
+
+		switch (whatside) {
+		case 0:
+			row = 0;
+			col = rand() % mazeHeight;
+			break;
+		case 1:
+			row = mazeWidth - 1;
+			col = rand() % mazeHeight;
+			break;
+		case 2:
+			row = rand() % mazeWidth;
+			col = 0;
+			break;
+		case 3:
+			row = rand() % mazeWidth;
+			col = mazeHeight - 1;
+			break;
+		}
+	}
+	else {
+		row = mazeWidth / 2;
+		col = mazeHeight / 2;
+	}
+
+
+
+	if ((row % 2 != 0) && (row != 0)) {
+		row--;
+	}
+	if ((col % 2 != 0) && (col != 0)) {
+		col--;
+	}
+
+
+	maze[row][col] = 0;
+	startX = row * 2000;
+	startY = col * 2000;
+	if (DrawDebugText)
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("StartX = %i  StartY = %i"), startX, startY));
+
+	recursiveMaze(row, col);
+	PrintMaze();
+}
+
+int MazeGeneration::recursiveMaze(int r, int c)
 {
 	if (DrawDebugText)
 		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::White, FString::Printf(TEXT("Recursive generateMaze function called")));
@@ -45,33 +128,33 @@ int MazeGeneration::generateMaze(int r, int c)
 				maze[r - 1][c] = 0;
 				endX = r - 2;
 				endY = c;
-				generateMaze(r - 2, c);
+				recursiveMaze(r - 2, c);
 			}
 			break;
 		case 1: // Right
 			cout << "Checking right \n";
 			// Whether 2 cells to the right is out or not
-			if (c + 2 >= mazeSize)
+			if (c + 2 >= mazeWidth)
 				continue;
 			if (maze[r][c + 2] != 0) {
 				maze[r][c + 2] = 0;
 				maze[r][c + 1] = 0;
 				endX = r;
 				endY = c + 2;
-				generateMaze(r, c + 2);
+				recursiveMaze(r, c + 2);
 			}
 			break;
 		case 2: // Down
 			cout << "Checking down \n";
 			// Whether 2 cells down is out or not
-			if (r + 2 >= mazeSize)
+			if (r + 2 >= mazeHeight)
 				continue;
 			if (maze[r + 2][c] != 0) {
 				maze[r + 2][c] = 0;
 				maze[r + 1][c] = 0;
 				endX = r + 2;
 				endY = c;
-				generateMaze(r + 2, c);
+				recursiveMaze(r + 2, c);
 			}
 			break;
 		case 3: // Left
@@ -84,7 +167,7 @@ int MazeGeneration::generateMaze(int r, int c)
 				maze[r][c - 1] = 0;
 				endX = r;
 				endY = c - 2;
-				generateMaze(r, c - 2);
+				recursiveMaze(r, c - 2);
 			}
 		}
 		if (noDeadEndsAllowed) {
@@ -104,82 +187,13 @@ int MazeGeneration::generateMaze(int r, int c)
 
 void MazeGeneration::PrintMaze()
 {
-	for (int i = 0; i < mazeSize; i++) {
-		for (int j = 0; j < mazeSize; j++) {
+	for (int i = 0; i < mazeWidth; i++) {
+		for (int j = 0; j < mazeHeight; j++) {
 			cout << maze[i][j] << " ";
 		}
 		cout << "\n";
 	}
 	cout << "\n";
-}
-
-void MazeGeneration::depthFirstMaze()
-{
-	if (DrawDebugText)
-		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::White, FString::Printf(TEXT("**DepthFirstMaze Begin**")));
-	cout << "Begin \n";
-	for (int i = 0; i < mazeSize; i++) {
-		for (int j = 0; j < mazeSize; j++) {
-			maze[i][j] = 1;
-		}
-
-	}
-
-
-	srand(time(NULL));
-
-	//generate a random place along the edge
-
-
-	if (!noDeadEndsAllowed) {
-		int whatside = rand() % 4;
-
-		switch (whatside) {
-		case 0:
-			row = 0;
-			col = rand() % mazeSize;
-			break;
-		case 1:
-			row = mazeSize - 1;
-			col = rand() % mazeSize;
-			break;
-		case 2:
-			row = rand() % mazeSize;
-			col = 0;
-			break;
-		case 3:
-			row = rand() % mazeSize;
-			col = mazeSize - 1;
-			break;
-		}
-	}
-	else {
-		row = mazeSize / 2;
-		col = mazeSize / 2;
-	}
-
-
-
-	if ((row % 2 != 0) && (row != 0)) {
-		row--;
-	}
-	if ((col % 2 != 0) && (col != 0)) {
-		col--;
-	}
-
-
-	maze[row][col] = 0;
-	startX = row * 2000;
-	startY = col * 2000;
-	if (DrawDebugText)
-		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Gamemode: StartX = %i  StartY = %i"), startX, startY));
-
-	generateMaze(row, col);
-	PrintMaze();
-}
-
-void MazeGeneration::initMazeGen()
-{
 }
 
 void MazeGeneration::oldDepthFirstMaze(int size)
