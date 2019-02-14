@@ -12,7 +12,7 @@
 using namespace std;
 
 
-std::vector<std::vector<int>> MazeGeneration::initMazeGen(int _mazeWidth, int _mazeHeight, int _pathLength, bool _noDeadEndsAllowed)
+void MazeGeneration::initMazeGen(int _mazeWidth, int _mazeHeight, int _pathLength, bool _noDeadEndsAllowed)
 {
 
 	mazeWidth = _mazeWidth;
@@ -21,8 +21,6 @@ std::vector<std::vector<int>> MazeGeneration::initMazeGen(int _mazeWidth, int _m
 	noDeadEndsAllowed = _noDeadEndsAllowed;
 
 	depthFirstMaze();
-
-	return maze;
 }
 
 
@@ -89,6 +87,8 @@ void MazeGeneration::depthFirstMaze()
 	maze[row][col] = 0;
 	startX = row * 2000;
 	startY = col * 2000;
+	endX = 0.f;
+	endY = 0.f;
 	if (DrawDebugText)
 		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("StartX = %i  StartY = %i"), startX, startY));
 
@@ -134,7 +134,7 @@ int MazeGeneration::recursiveMaze(int r, int c)
 		case 1: // Right
 			cout << "Checking right \n";
 			// Whether 2 cells to the right is out or not
-			if (c + 2 >= mazeWidth)
+			if (c + 2 >= mazeHeight)
 				continue;
 			if (maze[r][c + 2] != 0) {
 				maze[r][c + 2] = 0;
@@ -147,7 +147,7 @@ int MazeGeneration::recursiveMaze(int r, int c)
 		case 2: // Down
 			cout << "Checking down \n";
 			// Whether 2 cells down is out or not
-			if (r + 2 >= mazeHeight)
+			if (r + 2 >= mazeWidth)
 				continue;
 			if (maze[r + 2][c] != 0) {
 				maze[r + 2][c] = 0;
@@ -323,6 +323,7 @@ void MazeGeneration::oldDepthFirstMaze(int size)
 
 	////return grid; //return the grid
 }
+
 //void MazeGeneration::oldSnakeToUnreal()
 //{
 //	FActorSpawnParameters spawnParams;

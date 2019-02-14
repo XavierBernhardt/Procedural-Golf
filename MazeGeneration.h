@@ -22,10 +22,10 @@ public:
 	int row, col;
 	bool noDeadEndsAllowed;
 	
-	TArray<AActor*> AllMazePieces;
+	//TArray<AActor*> AllMazePieces;
 	std::vector<std::vector<int>> maze;
 	
-	std::vector<std::vector<int>> initMazeGen(int _mazeWidth, int _mazeHeight, int _pathLength, bool _noDeadEndsAllowed);
+	void initMazeGen(int _mazeWidth, int _mazeHeight, int _pathLength, bool _noDeadEndsAllowed);
 	void depthFirstMaze();
 	int recursiveMaze(int r, int c);
 	void PrintMaze();

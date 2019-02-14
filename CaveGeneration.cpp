@@ -582,29 +582,6 @@ vector<vector<node>> CaveGeneration::caveGenerationBegin()
 	//	}
 	//}
 
-	/*
-
-	00:24] wooIen: right now
-	[00:24] wooIen: it goes through each cavern
-	[00:25] wooIen: looks in all 4 directions for another cavern
-	[00:25] wooIen: if it finds one it tries to tunnel towards it in a straight line
-	[00:25] wooIen: ive thought of a better solution
-	[00:25] wooIen: that one before assumed that each cavern is seperate and doesnt know about each other
-	[00:25] wooIen: which is true
-	[00:25] wooIen: but i know  that if thers more than one cavern, theres more than one cavern
-	[00:25] wooIen: individually they dont know if they are the only one or others, hence the search
-	[00:25] wooIen: instead
-	[00:25] wooIen: i should
-	[00:26] wooIen: >when filling the caverns, find out how large each are
-	[00:26] wooIen: > once all are filled, decide the largest (this will be main cave)
-	[00:26] wooIen: use a* algorithm to find the shortest path between the centre of this and each other tunnel
-	[00:26] wooIen: if this path if < some value (anything outside of this range will be destroyed)
-	[00:26] wooIen: tunnel between the two
-	[00:26] wooIen: along the a* path
-	[00:26] wooIen: do for each cavern to connect to the main one
-	[00:27] wooIen: could also do it for each cavern to each cavern if you want each cavern to be interconnected i guess
-
-	*/
 	return map;
 }
 
