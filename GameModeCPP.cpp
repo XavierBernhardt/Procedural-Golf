@@ -139,9 +139,9 @@ void AGameModeCPP::roomGenBegin()
 
 	}
 
-
+	chanceForRock = roomSet.rockChance;
 	crdList = roomGen.initRoomGen(roomSet.roomChance, roomSet.turnChance, roomSet.hitSelf, 
-			roomSet.turnBack, roomSet.pathLength, roomSet.rockChance, roomSet.placeCorners);
+			roomSet.turnBack, roomSet.pathLength, chanceForRock, roomSet.placeCorners);
 
 	roomToUnreal();
 }
