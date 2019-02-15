@@ -35,8 +35,24 @@ void AGameModeCPP::InitGameState()
 		if (LevelName.Equals("MainMenu")) {
 			if (DrawDebugText)
 				GEngine->AddOnScreenDebugMessage(110, 99.f, FColor::Cyan, TEXT("Current Level: Main Menu"));
-		//	mazeGenBegin();
 
+		int randMap[4] = { 0, 1, 2, 3 }; 
+		std::random_shuffle(&randMap[0], &randMap[4]);
+
+		switch (randMap[0]) {
+			case 0: 
+				mazeGenBegin();
+				break;
+			case 1:
+				snakeGenBegin();
+				break;
+			case 2:
+				roomGenBegin();
+				break;
+			case 3:
+				caveGenBegin();
+				break;
+			}
 		}
 
 		else if (LevelName.Equals("MazeGeneration")) {
@@ -71,7 +87,7 @@ void AGameModeCPP::InitGameState()
 			currentMap = 4;
 			if (DrawDebugText)
 				GEngine->AddOnScreenDebugMessage(110, 99.f, FColor::Cyan, TEXT("Current Level: Cave Generation"));
-
+			caveGenBegin();
 
 			GetWorld()->SpawnActor<AActor>(PlayerPawn, FVector(startX, startY, 0.f), FRotator(0, 0, 0), spawnParams);
 		}
@@ -235,16 +251,19 @@ void AGameModeCPP::snakeGenBegin()
 	mazePiecesAlt1.Add(MazeXAlt1);
 
 	int snakeLength = 20;
-
-	UGameInstanceCPP * gameInst = Cast<UGameInstanceCPP>(GetWorld()->GetGameInstance());
-	if (gameInst) { //Try to get the custom values set in the main menu 
-		snakeLength = gameInst->GIsnakeTrackLength;
-		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Game instance found")));
+	if (currentMap == 0) { //If on the menu
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Currently on menu")));
 	}
 	else {
-		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Could not find game instance")));
+		UGameInstanceCPP * gameInst = Cast<UGameInstanceCPP>(GetWorld()->GetGameInstance());
+		if (gameInst) { //Try to get the custom values set in the main menu 
+			snakeLength = gameInst->GIsnakeTrackLength;
+			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Game instance found")));
+		}
+		else {
+			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Could not find game instance")));
+		}
 	}
-
 	crdList = snakeGen.initSnakeGen(snakeLength);
 	SnakeToUnreal();
 

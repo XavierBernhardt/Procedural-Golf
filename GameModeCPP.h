@@ -20,7 +20,7 @@ class PROCEDURALGOLFV2_API AGameModeCPP : public AGameMode
 protected:
 
 	//Variables
-	bool DrawDebugText = true;
+	bool DrawDebugText = false;
 	TSubclassOf<class AActor> pieceToPlace = MazeN; //by default place a solid block
 	int pieceToRotate = 0; //rotation is 0 by default
 	int pieceType;

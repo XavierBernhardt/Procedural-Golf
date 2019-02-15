@@ -17,21 +17,21 @@ struct mazeSettings {
 	int deadends = false;
 };
 struct roomSettings {
-	int roomChance;
-	int turnChance;
-	bool hitSelf;
-	bool turnBack;
-	int pathLength;
-	int rockChance;
-	bool placeCorners;
+	int roomChance = 10;
+	int turnChance = 30;
+	bool hitSelf = true;
+	bool turnBack = true;
+	int pathLength = 30;
+	int rockChance = 20;
+	bool placeCorners = true;
 };
 struct caveSettings {
-	int maxCaveX;
-	int maxCaveY;
-	int createChance;
-	int initialCycles;
-	int finalCycles;
-	float minSizeMulti;
+	int maxCaveX = 25;
+	int maxCaveY = 25;
+	int createChance = 41;
+	int initialCycles = 3;
+	int finalCycles = 3;
+	float minSizeMulti = 0.3;
 };
 
 UCLASS()
@@ -53,7 +53,7 @@ public:
 	////--------SNAKE GEN---------\\\\
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Snake)
-		int GIsnakeTrackLength; //0-100 chance to spawn a room of some kind
+		int GIsnakeTrackLength = 20; //0-100 chance to spawn a room of some kind
 
 	////--------ROOM GEN---------\\\\
 

@@ -17,7 +17,7 @@ public:
 
 	int pathLength;
 	float startX, startY, endX, endY;
-	bool DrawDebugText = true; 
+	bool DrawDebugText = false; 
 	bool deadEndHit = false;
 	int row, col;
 	bool noDeadEndsAllowed;
