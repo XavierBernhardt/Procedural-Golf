@@ -63,9 +63,8 @@ void AGameModeCPP::InitGameState()
 			currentMap = 3;
 			if (DrawDebugText)
 				GEngine->AddOnScreenDebugMessage(110, 99.f, FColor::Cyan, TEXT("Current Level: Room Generation"));
-			
-			crdList = roomGen.initRoomGen(roomChance, turnChance, hitSelf, turnBack, roomPathLength, chanceForRock, placeCornerWalls);
-			roomToUnreal();
+			roomGenBegin();
+
 			GetWorld()->SpawnActor<AActor>(PlayerPawn, FVector(0.f, 0.f, 0.f), FRotator(0, 0, 0), spawnParams);
 		}
 		else if (LevelName.Equals("CaveGeneration")) {
@@ -73,8 +72,7 @@ void AGameModeCPP::InitGameState()
 			if (DrawDebugText)
 				GEngine->AddOnScreenDebugMessage(110, 99.f, FColor::Cyan, TEXT("Current Level: Cave Generation"));
 
-			caveMap = caveGen.initCaveGen(maxCaveX, maxCaveY, createChance, maxCyclesInitial, maxCyclesFinal, minSizeMultiplier);
-			caveToUnreal();
+
 			GetWorld()->SpawnActor<AActor>(PlayerPawn, FVector(startX, startY, 0.f), FRotator(0, 0, 0), spawnParams);
 		}
 
@@ -119,6 +117,59 @@ void AGameModeCPP::InitGameState()
 		*/
 
 	}
+}
+
+void AGameModeCPP::roomGenBegin()
+{
+
+	roomSettings roomSet = { 10, 30, true, true, 30, 20, true }; //Default settings
+
+	if (currentMap == 0) { //If on the menu
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Currently on menu")));
+	}
+	else {
+		UGameInstanceCPP * gameInst = Cast<UGameInstanceCPP>(GetWorld()->GetGameInstance());
+		if (gameInst) { //Try to get the custom values set in the main menu 
+			roomSet = gameInst->getRoomSettings();
+			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Game instance found")));
+		}
+		else {
+			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Could not find game instance")));
+		}
+
+	}
+
+
+	crdList = roomGen.initRoomGen(roomSet.roomChance, roomSet.turnChance, roomSet.hitSelf, 
+			roomSet.turnBack, roomSet.pathLength, roomSet.rockChance, roomSet.placeCorners);
+
+	roomToUnreal();
+}
+
+void AGameModeCPP::caveGenBegin()
+{
+
+	caveSettings caveSet = { 25, 25, 40, 3, 3, 0.3 };
+	if (currentMap == 0) { //If on the menu
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Currently on menu")));
+	}
+	else {
+		UGameInstanceCPP * gameInst = Cast<UGameInstanceCPP>(GetWorld()->GetGameInstance());
+		if (gameInst) { //Try to get the custom values set in the main menu 
+			caveSet = gameInst->getCaveSettings();
+			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Game instance found")));
+		}
+		else {
+			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Could not find game instance")));
+		}
+
+	}
+
+
+	caveMap = caveGen.initCaveGen(caveSet.maxCaveX, caveSet.maxCaveY, caveSet.createChance, 
+		caveSet.initialCycles, caveSet.finalCycles, caveSet.minSizeMulti);
+
+	caveToUnreal();
 }
 
 void AGameModeCPP::mazeGenBegin()
@@ -183,7 +234,18 @@ void AGameModeCPP::snakeGenBegin()
 	mazePiecesAlt1.Add(MazeTAlt1);
 	mazePiecesAlt1.Add(MazeXAlt1);
 
-	crdList = snakeGen.initSnakeGen(snakeTrackLength);
+	int snakeLength = 20;
+
+	UGameInstanceCPP * gameInst = Cast<UGameInstanceCPP>(GetWorld()->GetGameInstance());
+	if (gameInst) { //Try to get the custom values set in the main menu 
+		snakeLength = gameInst->GIsnakeTrackLength;
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Game instance found")));
+	}
+	else {
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Could not find game instance")));
+	}
+
+	crdList = snakeGen.initSnakeGen(snakeLength);
 	SnakeToUnreal();
 
 }
@@ -620,13 +682,10 @@ void AGameModeCPP::resetMap()
 			snakeGenBegin();
 		}
 		else if (LevelName.Equals("RoomGeneration")) {
-			crdList = roomGen.initRoomGen(roomChance, turnChance, hitSelf, turnBack, roomPathLength, chanceForRock, placeCornerWalls);
-			roomToUnreal();
+			roomGenBegin();
 		}
 		else if (LevelName.Equals("CaveGeneration")) {
-			//int _maxCaveX, int _maxCaveY, int _createChance, int _maxCyclesInitial, int _maxCyclesFinal, float _minSizeMultiplier
-			caveMap = caveGen.initCaveGen(maxCaveX, maxCaveY, createChance, maxCyclesInitial, maxCyclesFinal, minSizeMultiplier);
-			caveToUnreal();
+			caveGenBegin();
 		}
 	}
 }

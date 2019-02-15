@@ -16,6 +16,23 @@ struct mazeSettings {
 	int length = 1;
 	int deadends = false;
 };
+struct roomSettings {
+	int roomChance;
+	int turnChance;
+	bool hitSelf;
+	bool turnBack;
+	int pathLength;
+	int rockChance;
+	bool placeCorners;
+};
+struct caveSettings {
+	int maxCaveX;
+	int maxCaveY;
+	int createChance;
+	int initialCycles;
+	int finalCycles;
+	float minSizeMulti;
+};
 
 UCLASS()
 class PROCEDURALGOLFV2_API UGameInstanceCPP : public UGameInstance
@@ -71,7 +88,8 @@ public:
 		float GIminSizeMultiplier;
 
 	mazeSettings getMazeSettings(); 
-
+	roomSettings getRoomSettings();
+	caveSettings getCaveSettings();
 
 };
 

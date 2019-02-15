@@ -19,57 +19,6 @@ class PROCEDURALGOLFV2_API AGameModeCPP : public AGameMode
 
 protected:
 
-	////--------////--------MODIFIERS---------\\\\---------\\\\
-
-	////--------MAZE GEN---------\\\\
-
-	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Maze, meta = (ClampMin = "5", UIMin = "5"))
-	//	int mazeWidth;
-	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Maze, meta = (ClampMin = "5", UIMin = "5"))
-	//	int mazeHeight;
-	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Maze, meta = (ClampMin = "1", UIMin = "1"))
-	//	int pathLength;
-	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Maze)
-	//	bool noDeadEndsAllowed;
-
-	////--------SNAKE GEN---------\\\\
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Snake)
-		int snakeTrackLength; //0-100 chance to spawn a room of some kind
-
-	////--------ROOM GEN---------\\\\
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = RoomGen)
-		int roomChance; //0-100 chance to spawn a room of some kind
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = RoomGen)
-		int turnChance; //0-100 chance to turn vs go in a straight line
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = RoomGen)
-		bool hitSelf = true; //true = path can go through itself 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = RoomGen)
-		bool turnBack = true; //true = path can turn backwards (requires hitSelf = true)
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = RoomGen)
-		int roomPathLength;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = RoomGen, meta = (ClampMin = "0", ClampMax = "100", UIMin = "0", UIMax = "100"))
-		int chanceForRock;//0 for no rocks, 100 for every space to be a rock.
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = RoomGen)
-		bool placeCornerWalls;//0 for no rocks, 100 for every space to be a rock.
-
-	////--------CAVE GEN---------\\\\
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Cave, meta = (ClampMin = "3", UIMin = "3"))
-		int maxCaveX;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Cave, meta = (ClampMin = "3", UIMin = "3"))
-		int maxCaveY;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Cave, meta = (ClampMin = "0", ClampMax = "100", UIMin = "0", UIMax = "100"))
-		int createChance;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Cave)
-		int maxCyclesInitial;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Cave)
-		int maxCyclesFinal;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Cave)
-		float minSizeMultiplier;
-
-
 	//Variables
 	bool DrawDebugText = true;
 	TSubclassOf<class AActor> pieceToPlace = MazeN; //by default place a solid block
@@ -103,6 +52,8 @@ protected:
 	void SnakeToUnreal();
 	void roomToUnreal();
 	virtual void InitGameState();
+	void roomGenBegin();
+	void caveGenBegin();
 
 public:
 
@@ -227,3 +178,56 @@ protected:
 	//int direction; //0 1 2 3 = N E S W | Previous Direction
 	//std::vector<std::vector<int>> grid;	
 	//int row, col;
+
+	//Before setting up the main menu settings window, I used these values as editAnywheres to modify the values within the editor
+
+
+	////--------////--------MODIFIERS---------\\\\---------\\\\
+
+	////--------MAZE GEN---------\\\\
+
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Maze, meta = (ClampMin = "5", UIMin = "5"))
+	//	int mazeWidth;
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Maze, meta = (ClampMin = "5", UIMin = "5"))
+	//	int mazeHeight;
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Maze, meta = (ClampMin = "1", UIMin = "1"))
+	//	int pathLength;
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Maze)
+	//	bool noDeadEndsAllowed;
+
+	////--------SNAKE GEN---------\\\\
+
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Snake)
+	//	int snakeTrackLength; //0-100 chance to spawn a room of some kind
+
+	//////--------ROOM GEN---------\\\\
+
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = RoomGen)
+	//	int roomChance; //0-100 chance to spawn a room of some kind
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = RoomGen)
+	//	int turnChance; //0-100 chance to turn vs go in a straight line
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = RoomGen)
+	//	bool hitSelf = true; //true = path can go through itself 
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = RoomGen)
+	//	bool turnBack = true; //true = path can turn backwards (requires hitSelf = true)
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = RoomGen)
+	//	int roomPathLength;
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = RoomGen, meta = (ClampMin = "0", ClampMax = "100", UIMin = "0", UIMax = "100"))
+	//	int chanceForRock;//0 for no rocks, 100 for every space to be a rock.
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = RoomGen)
+	//	bool placeCornerWalls;//0 for no rocks, 100 for every space to be a rock.
+
+	//////--------CAVE GEN---------\\\\
+
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Cave, meta = (ClampMin = "3", UIMin = "3"))
+	//	int maxCaveX;
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Cave, meta = (ClampMin = "3", UIMin = "3"))
+	//	int maxCaveY;
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Cave, meta = (ClampMin = "0", ClampMax = "100", UIMin = "0", UIMax = "100"))
+	//	int createChance;
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Cave)
+	//	int maxCyclesInitial;
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Cave)
+	//	int maxCyclesFinal;
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Cave)
+	//	float minSizeMultiplier;
