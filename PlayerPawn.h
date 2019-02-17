@@ -52,8 +52,8 @@ public:
 	UPROPERTY(EditAnywhere, Category = AVariables)
 		float force;
 
-	UPROPERTY(EditAnywhere, Category = AVariables)
-		float forceMultiplier;
+	//UPROPERTY(EditAnywhere, Category = AVariables)
+	//	float forceMultiplier;
 
 	UPROPERTY(EditAnywhere, Category = AVariables)
 		float dampingDefault;
@@ -146,6 +146,7 @@ public:
 	int overlappingIce;
 	int overlappingSand;
 	int CurrentHole;
+	float sensitivity;
 	FTimerHandle canSetShootTimer;
 	FTimerHandle flagTimer;
 
@@ -198,5 +199,8 @@ public:
 
 	FVector LastSafeLocation;
 	bool RainbowLines = true;
+
+	float customForceMulti;
+
 }
 ;

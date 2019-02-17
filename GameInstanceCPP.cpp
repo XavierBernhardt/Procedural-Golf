@@ -29,3 +29,8 @@ caveSettings UGameInstanceCPP::getCaveSettings()
 {
 	return caveSettings{GImaxCaveX, GImaxCaveY, GIcreateChance, GImaxCyclesInitial, GImaxCyclesFinal, GIminSizeMultiplier};
 }
+
+controlSettings UGameInstanceCPP::getControlSettings()
+{
+	return controlSettings{ GIForceMultiplier , GIDampingMultiplier , GIJumpMultiplier, GISensitivityMultiplier, GIMassMultiplier };
+}

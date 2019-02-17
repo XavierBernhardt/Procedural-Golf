@@ -33,6 +33,13 @@ struct caveSettings {
 	int finalCycles = 3;
 	float minSizeMulti = 0.3;
 };
+struct controlSettings {
+	float forceMultiplier;
+	float dampingMultiplier;
+	float jumpMultiplier;
+	float sensitivityMultiplier;
+	float massMultiplier;
+};
 
 UCLASS()
 class PROCEDURALGOLFV2_API UGameInstanceCPP : public UGameInstance
@@ -87,9 +94,25 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Cave)
 		float GIminSizeMultiplier;
 
+	////--------CONTROLS---------\\\\
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Controls)
+		float GIForceMultiplier;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Controls)
+		float GIDampingMultiplier;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Controls)
+		float GIJumpMultiplier;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Controls)
+		float GISensitivityMultiplier;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Controls)
+		float GIMassMultiplier;
+
+
 	mazeSettings getMazeSettings(); 
 	roomSettings getRoomSettings();
 	caveSettings getCaveSettings();
+	controlSettings getControlSettings();
+
 
 };
 

@@ -29,6 +29,7 @@
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
 #include "Runtime/Engine/Classes/GameFramework/PlayerController.h"
 #include "IceActor.h"
+#include "GameInstanceCPP.h"
 #include "WaterActor.h"
 #include "SpringboardActor.h"
 #include "SlowSandActor.h"
@@ -47,20 +48,19 @@ APlayerPawn::APlayerPawn()
 	//minForce = 3;
 	//force = defaultForce;
 
-	//Not Tuned
+	realDamping = dampingDefault;
+	JumpImpulse = 3000000.0;
+
 	canShoot = false;
 	rotating = 0;
 	shootDirection = FRotator(0.f,0.f,0.f);
 	slowMoving = true;
 	dampingDefault = 5.f;
-	realDamping = dampingDefault;// *dampingMultiplier;
 	iceDamping = (dampingDefault / 3);
 	sandDamping = (dampingDefault * 4);
-
 	overlappingIce = 0;
 	overlappingSand = 0;
-
-	JumpImpulse = 350000.0f;
+	sensitivity = 1;
 	slowValue = 50; //velocities below this are considered slow
 	touchedFlag = true;
 	//cameraRotating = 0;
@@ -76,15 +76,14 @@ APlayerPawn::APlayerPawn()
 	Ball->SetSimulatePhysics(true);
 	Ball->SetAngularDamping(realDamping);
 	Ball->SetLinearDamping(0);
-	Ball->BodyInstance.MassScale = 5;
+	Ball->BodyInstance.MassScale = 5; 	
 	Ball->BodyInstance.MaxAngularVelocity = 2000.0f;
 	Ball->SetNotifyRigidBodyCollision(true);
 	Ball->SetAllUseCCD(true);
 	Ball->SetRenderCustomDepth(true);
-
 	//GetRootComponent()->SetHiddenInGame(true);
 	RootComponent = Ball;
-
+	customForceMulti = 3.5;
 	//Makes a static mesh for the force visualiser (cylinder)
 	//static ConstructorHelpers::FObjectFinder<UStaticMesh> CylMesh(TEXT("/Game/Meshes/ForceVisualiserMesh.ForceVisualiserMesh"));
 	//Cyl = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Cyl0"));
@@ -112,7 +111,7 @@ APlayerPawn::APlayerPawn()
 	//Camera->SetupAttachment(SpringArm, USpringArmComponent::SocketName);
 	//Camera->bUsePawnControlRotation = true; // We don't want the controller rotating the camera
 
-	BaseTurnRate = 45.f;
+	BaseTurnRate = 45.f ;
 	BaseLookUpRate = 45.f;
 
 	// Create a camera boom (pulls in towards the player if there is a collision)
@@ -139,7 +138,29 @@ void APlayerPawn::BeginPlay()
 
 	Super::BeginPlay();
 
+	controlSettings customControls = { 1.f, 3.f, 1.f, 1.f, 1.f };
 
+	UGameInstanceCPP * gameInst = Cast<UGameInstanceCPP>(GetWorld()->GetGameInstance());
+	if (gameInst) { //Try to get the custom values set in the main menu 
+		customControls = gameInst->getControlSettings();
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Game instance found")));
+	}
+	else {
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Could not find game instance")));
+	}
+
+	realDamping = dampingDefault * customControls.dampingMultiplier;
+
+	customForceMulti = customControls.forceMultiplier;
+
+	sensitivity = customControls.sensitivityMultiplier;
+
+	JumpImpulse = 3000000.0 * customControls.jumpMultiplier;
+
+	Ball->BodyInstance.MassScale = 5 * customControls.massMultiplier;
+
+	BaseTurnRate = 45.f * customControls.sensitivityMultiplier;
+	BaseLookUpRate = 45.f * customControls.sensitivityMultiplier;
 
 	if (DrawDebugText)
 	GEngine->AddOnScreenDebugMessage(100, 5.0f, FColor::White, TEXT("Begin"));
@@ -428,7 +449,7 @@ void APlayerPawn::ForceRemoveRelease()
 void APlayerPawn::UpdateHUDStrings()
 {
 	#define LOCTEXT_NAMESPACE "PlayerPawn"
-
+	
 	ForceDisplayString = FText::Format(LOCTEXT("ForceFormat", "Power: {0}"), FText::AsNumber(FMath::FloorToInt(force)));
 
 
@@ -441,14 +462,14 @@ void APlayerPawn::Shoot()
 	if (canShoot) {
 		if (DrawDebugText)
 		GEngine->AddOnScreenDebugMessage(105, 0.5f, FColor::White, TEXT("Shooting"));
-
+		//{ GIForceMultiplier , GISensitivityMultiplier };
 		LastSafeLocation = GetActorLocation();
-		float trueForce = force * 100000;
+		float trueForce = force * 100000 * customForceMulti;
 		shotsTaken ++;
 		FVector forwards = shootDirection.Vector() * trueForce;
 		FVector impulse = GetActorRotation().Vector() + forwards;
 		//const FVector Impulse = FVector(0.f, force, 0.f);
-		Ball->AddImpulse(impulse * forceMultiplier);
+		Ball->AddImpulse(impulse);
 		slowMoving = false;
 		Ball->SetAngularDamping(realDamping);
 	//	Ball->SetLinearDamping(realDamping);
