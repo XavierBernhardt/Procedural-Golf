@@ -52,8 +52,8 @@ APlayerPawn::APlayerPawn()
 	rotating = 0;
 	shootDirection = FRotator(0.f,0.f,0.f);
 	slowMoving = true;
-	dampingDefault = 1.2f;
-	realDamping = dampingDefault;
+	dampingDefault = 5.f;
+	realDamping = dampingDefault;// *dampingMultiplier;
 	iceDamping = (dampingDefault / 3);
 	sandDamping = (dampingDefault * 4);
 
@@ -75,9 +75,9 @@ APlayerPawn::APlayerPawn()
 	Ball->BodyInstance.SetCollisionProfileName(UCollisionProfile::PhysicsActor_ProfileName);
 	Ball->SetSimulatePhysics(true);
 	Ball->SetAngularDamping(realDamping);
-	Ball->SetLinearDamping(realDamping);
-	Ball->BodyInstance.MassScale = 3.5f;
-	Ball->BodyInstance.MaxAngularVelocity = 800.0f;
+	Ball->SetLinearDamping(0);
+	Ball->BodyInstance.MassScale = 5;
+	Ball->BodyInstance.MaxAngularVelocity = 2000.0f;
 	Ball->SetNotifyRigidBodyCollision(true);
 	Ball->SetAllUseCCD(true);
 	Ball->SetRenderCustomDepth(true);
@@ -151,7 +151,7 @@ void APlayerPawn::BeginPlay()
 	GetWorld()->GetTimerManager().SetTimer(flagTimer, this, &APlayerPawn::RespawnPlayer, 0.01f, false, 0.01f);
 
 
-	NextFlag = FVector(0.f, 0.f, 2000); // Spawn Platform at 0,0,2000
+	NextFlag = FVector(0.f, 0.f, 10.f); // Spawn Platform at 0,0,2000
 
 	//NextFlag = FVector(5860.f, -8449.f, 555.f); // TestLevel Hole0
 
@@ -176,7 +176,7 @@ void APlayerPawn::Tick(float DeltaTime)
 		GEngine->AddOnScreenDebugMessage(71, 99.0f, FColor::White, FString::Printf(TEXT("Rotation=%s"), *(GetActorRotation().ToString())));
 		GEngine->AddOnScreenDebugMessage(73, 99.0f, FColor::White, FString::Printf(TEXT("Location=%s"), *(GetActorLocation().ToString())));
 		GEngine->AddOnScreenDebugMessage(72, 99.0f, FColor::White, FString::Printf(TEXT("Shoot Direction=%s"), *(shootDirection.ToString())));
-		GEngine->AddOnScreenDebugMessage(201, 0.01f, FColor::Blue, FString::Printf(TEXT("Angluar/Linear Damping=%f"), Ball->GetAngularDamping()));
+		GEngine->AddOnScreenDebugMessage(201, 0.01f, FColor::Blue, FString::Printf(TEXT("Angluar Damping=%f"), Ball->GetAngularDamping()));
 	
 	
 	}	
@@ -218,9 +218,9 @@ void APlayerPawn::Tick(float DeltaTime)
 	if (slowMoving) {
 		if (DrawDebugText)
 		GEngine->AddOnScreenDebugMessage(200, 0.01f, FColor::Red, FString::Printf(TEXT("SlowMoving = true")));
-		if (Ball->GetLinearDamping() == realDamping) {
-			Ball->SetAngularDamping(15.f);
-			Ball->SetLinearDamping(15.f);
+		if (Ball->GetAngularDamping() == realDamping) {
+			Ball->SetAngularDamping(50.f);
+			Ball->SetLinearDamping(50.f);
 		}
 
 	}
@@ -228,7 +228,8 @@ void APlayerPawn::Tick(float DeltaTime)
 		if (DrawDebugText)
 		GEngine->AddOnScreenDebugMessage(200, 0.01f, FColor::Green, FString::Printf(TEXT("SlowMoving = false")));
 		Ball->SetAngularDamping(realDamping);
-		Ball->SetLinearDamping(realDamping);
+		Ball->SetLinearDamping(0.f);
+	//	Ball->SetLinearDamping(realDamping);
 	}
 
 	if (!canShoot && canSetShoot) { //nested if here to save doing the calcs below if unneccessary
@@ -244,8 +245,8 @@ void APlayerPawn::Tick(float DeltaTime)
 	if (GetActorLocation().Z < -500) {
 		SetActorLocation(LastSafeLocation);
 		slowMoving = true;
-		Ball->SetLinearDamping(1000);
-		Ball->SetAngularDamping(1000);
+		Ball->SetLinearDamping(50.f);
+		Ball->SetAngularDamping(50.f);
 		canSetShoot = true;
 		canShoot = false;
 		touchedFlag = false;
@@ -447,10 +448,10 @@ void APlayerPawn::Shoot()
 		FVector forwards = shootDirection.Vector() * trueForce;
 		FVector impulse = GetActorRotation().Vector() + forwards;
 		//const FVector Impulse = FVector(0.f, force, 0.f);
-		Ball->AddImpulse(impulse);
+		Ball->AddImpulse(impulse * forceMultiplier);
 		slowMoving = false;
 		Ball->SetAngularDamping(realDamping);
-		Ball->SetLinearDamping(realDamping);
+	//	Ball->SetLinearDamping(realDamping);
 		canShoot = false;
 		canSetShoot = false;
 		GetWorld()->GetTimerManager().SetTimer(canSetShootTimer, this, &APlayerPawn::canSetShootMethod, 1.0f, false, 1.0f);
@@ -475,7 +476,43 @@ void APlayerPawn::RespawnPlayer()
 			CurrentHole++;
 			IsItNewLevel = false;
 		}
-		SetNextFlag(FVector(GameModeCPP->startX , GameModeCPP->startY , 10.f));
+		if (GameModeCPP->currentMap != 5) //If the level isn't the designed map
+			SetNextFlag(FVector(GameModeCPP->startX , GameModeCPP->startY , 10.f));
+		else {
+			switch (CurrentHole) {
+			case 1:
+				SetNextFlag(FVector(10000.f, 0.f, 10.f));
+				break;
+			case 2:
+				SetNextFlag(FVector(20000.f, 0.f, 10.f));
+				break;
+			case 3:
+				SetNextFlag(FVector(30000.f, 0.f, 10.f));
+				break;
+			case 4:
+				SetNextFlag(FVector(40000.f, 0.f, 10.f));
+				break;
+			case 5:
+				SetNextFlag(FVector(0.f, -20000.f, 10.f));
+				break;
+			case 6:
+				SetNextFlag(FVector(10000.f, -20000.f, 8000.f));
+				break;
+			case 7:
+				SetNextFlag(FVector(20000.f, -20000.f, 4010.f));
+				break;
+			case 8:
+				SetNextFlag(FVector(40000.f, -30000.f, 10.f));
+				break;
+			case 9:
+				SetNextFlag(FVector(52500.f, -21500.f, 10260.f));
+				break;
+			case 10:
+				GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, FString::Printf(TEXT("Final hole reached.")));
+				RestartPressed();
+				break;
+			}
+		}
 	}
 	else {
 		if (DrawDebugText)	
@@ -498,28 +535,31 @@ void APlayerPawn::RespawnPlayer()
 void APlayerPawn::OnOverlap(UPrimitiveComponent * HitComp, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
 {
 	if (Cast<AIceActor>(OtherActor)) {
-		//GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::White, FString::Printf(TEXT("Overlap with ice begun")));
+		if (DrawDebugText)
+			GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::White, FString::Printf(TEXT("Overlap with ice begun")));
 		overlappingIce++;
 		realDamping = iceDamping;
 		Ball->SetAngularDamping(realDamping);
-		Ball->SetLinearDamping(realDamping);
+	//	Ball->SetLinearDamping(realDamping);
 	}
 	if (Cast<ASlowSandActor>(OtherActor)) {
-		//GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::White, FString::Printf(TEXT("Overlap with ice begun")));
+		if (DrawDebugText)
+			GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::White, FString::Printf(TEXT("Overlap with sand begun")));
 		overlappingSand++;
 		realDamping = sandDamping;
 		Ball->SetAngularDamping(sandDamping);
-		Ball->SetLinearDamping(sandDamping);
+	//	Ball->SetLinearDamping(sandDamping);
 	}
 	if (Cast<AWaterActor>(OtherActor)) {
 		SetActorLocation(LastSafeLocation);
 		slowMoving = true;
-		Ball->SetLinearDamping(100);
-		Ball->SetAngularDamping(100);
+		Ball->SetLinearDamping(50);
+		Ball->SetAngularDamping(50);
 		canSetShoot = true;
 		canShoot = false;
 		touchedFlag = false;
-		//GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::White, FString::Printf(TEXT("Overlap with ice begun")));
+		if (DrawDebugText)
+		GEngine	->AddOnScreenDebugMessage(-1, 1.f, FColor::White, FString::Printf(TEXT("Overlap with water begun")));
 
 	}
 	if (Cast<ASpringboardActor>(OtherActor)) {
@@ -537,8 +577,8 @@ void APlayerPawn::OnOverlap(UPrimitiveComponent * HitComp, AActor * OtherActor, 
 		if (!touchedFlag) {
 			if (DrawDebugText)
 			GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Purple, FString::Printf(TEXT("Touched Flag")));
-			Ball->SetLinearDamping(30);
-			Ball->SetAngularDamping(30);
+			Ball->SetLinearDamping(50.f);
+			Ball->SetAngularDamping(50.f);
 	/*		Ball->SetPhysicsLinearVelocity(-Ball->GetPhysicsLinearVelocity());
 
 			FVector forwards = Ball->GetPhysicsLinearVelocity();
@@ -568,7 +608,7 @@ void APlayerPawn::OnOverlapEnd(UPrimitiveComponent * OverlappedComp, AActor * Ot
 		//GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Emerald, FString::Printf(TEXT("Ending overlap with ice")));
 		overlappingIce--;
 		Ball->SetAngularDamping(realDamping);
-		Ball->SetLinearDamping(realDamping);
+	//	Ball->SetLinearDamping(realDamping);
 		if (overlappingIce < 1) {
 		//	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Purple, FString::Printf(TEXT("***Ending overlap with ALL ice")));
 			realDamping = dampingDefault;
@@ -579,7 +619,7 @@ void APlayerPawn::OnOverlapEnd(UPrimitiveComponent * OverlappedComp, AActor * Ot
 		//GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Emerald, FString::Printf(TEXT("Ending overlap with ice")));
 		overlappingSand--;
 		Ball->SetAngularDamping(realDamping);
-		Ball->SetLinearDamping(realDamping);
+	//	Ball->SetLinearDamping(realDamping);
 		if (overlappingSand < 1) {
 			//	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Purple, FString::Printf(TEXT("***Ending overlap with ALL ice")));
 			realDamping = dampingDefault;

@@ -35,8 +35,47 @@ class PROCEDURALGOLFV2_API APlayerPawn : public APawn
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 		class UCameraComponent* FollowCamera;
 
+
+
 public:
+	
+	//Tune Variables
+	UPROPERTY(EditAnywhere, Category = AVariables)
+		float defaultForce;
+
+	UPROPERTY(EditAnywhere, Category = AVariables)
+		float maxForce;
+
+	UPROPERTY(EditAnywhere, Category = AVariables)
+		float minForce;
+
+	UPROPERTY(EditAnywhere, Category = AVariables)
+		float force;
+
+	UPROPERTY(EditAnywhere, Category = AVariables)
+		float forceMultiplier;
+
+	UPROPERTY(EditAnywhere, Category = AVariables)
+		float dampingDefault;
+
+	UPROPERTY(EditAnywhere, Category = AVariables)
+		float dampingMultiplier;
+
+	UPROPERTY(EditAnywhere, Category = AVariables)
+		float JumpImpulse;
+
+	UPROPERTY(EditAnywhere, Category = Camera)
+		float BaseTurnRate;
+
+	UPROPERTY(EditAnywhere, Category = Camera)
+		float BaseLookUpRate;
+
+	UPROPERTY(EditAnywhere, Category = Camera)
+		float BaseZoomRate;
+
 	// Sets default values for this pawn's properties
+
+
 	APlayerPawn();
 
 protected:
@@ -93,33 +132,7 @@ public:
 
 	FRotator shootDirection;
 
-	//Tune Variables
-	UPROPERTY(EditAnywhere, Category = AVariables)
-		float defaultForce;
 
-	UPROPERTY(EditAnywhere, Category = AVariables)
-		float maxForce;
-
-	UPROPERTY(EditAnywhere, Category = AVariables)
-		float minForce;
-
-	UPROPERTY(EditAnywhere, Category = AVariables)
-		float force;
-
-	UPROPERTY(EditAnywhere, Category = AVariables)
-		float dampingDefault;
-
-	UPROPERTY(EditAnywhere, Category = AVariables)
-		float JumpImpulse;
-
-	UPROPERTY(EditAnywhere, Category = Camera)
-		float BaseTurnRate;
-
-	UPROPERTY(EditAnywhere, Category = Camera)
-		float BaseLookUpRate;
-
-	UPROPERTY(EditAnywhere, Category = Camera)
-		float BaseZoomRate;
 
 	//Non Tune Variables
 	bool canShoot, canSetShoot, touchedFlag;
@@ -180,7 +193,7 @@ public:
 	void ResetGamePressed();
 	bool IsItNewLevel = false;
 
-	bool DrawDebugText = false;
+	bool DrawDebugText = true;
 	bool DrawFlagHitText = false;
 
 	FVector LastSafeLocation;

@@ -47,10 +47,12 @@ void AGameModeCPP::InitGameState()
 				snakeGenBegin();
 				break;
 			case 2:
-				roomGenBegin();
+				mazeGenBegin();
+				//roomGenBegin();
 				break;
 			case 3:
-				caveGenBegin();
+				snakeGenBegin();
+				//caveGenBegin();
 				break;
 			}
 		}
@@ -91,7 +93,13 @@ void AGameModeCPP::InitGameState()
 
 			GetWorld()->SpawnActor<AActor>(PlayerPawn, FVector(startX, startY, 0.f), FRotator(0, 0, 0), spawnParams);
 		}
+		else if (LevelName.Equals("DesignedMap")) {
+			currentMap = 5;
+			if (DrawDebugText)
+				GEngine->AddOnScreenDebugMessage(110, 99.f, FColor::Cyan, TEXT("Current Level: Designed Map"));
 
+			GetWorld()->SpawnActor<AActor>(PlayerPawn, FVector(0.f, 0.f, 10.f), FRotator(0, 0, 0), spawnParams);
+		}
 
 		/*
 				//CurrentHole = 0;
@@ -705,6 +713,11 @@ void AGameModeCPP::resetMap()
 		}
 		else if (LevelName.Equals("CaveGeneration")) {
 			caveGenBegin();
+		}
+		else if (LevelName.Equals("DesignedMap")) {
+
+
+
 		}
 	}
 }
