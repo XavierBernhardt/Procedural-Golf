@@ -22,10 +22,12 @@ AMazeNodeMain::AMazeNodeMain()
 //type = 0;
 // 6 = SAND
 // 7 = Cave
+// 8 = I ramp
+// 9 = L ramp
 
 //Floor:
-//0			1		2		3		4	
-//Grass		Ice		Hole	Cave	Sand
+//0			1		2		3		4		5		6
+//Grass		Ice		Hole	Cave	Sand	I ramp	L ramp
 //Default			(unused)
 //floor = 0;
 
@@ -111,6 +113,17 @@ void AMazeNodeMain::init()
 	case 7: //Cave
 		myPiece = GetWorld()->SpawnActor<AActor>(MazeWallCave, GetActorLocation(), GetActorRotation(), spawnParams);
 		break;
+	case 9: //I ramp
+		myPiece = GetWorld()->SpawnActor<AActor>(IRampWall, GetActorLocation(), GetActorRotation(), spawnParams);
+		if (inverted)
+			myPiece->SetActorScale3D(FVector(-1.f, -1.f, 1.f));
+		break;
+	case 8: //L ramp
+		if (inverted)
+			myPiece = GetWorld()->SpawnActor<AActor>(LRampWallInverted, GetActorLocation(), GetActorRotation(), spawnParams);
+		else
+			myPiece = GetWorld()->SpawnActor<AActor>(LRampWall, GetActorLocation(), GetActorRotation(), spawnParams);
+		break;
 	break;
 	}
 	switch (floor) {
@@ -129,7 +142,32 @@ void AMazeNodeMain::init()
 		else
 			myFloor = GetWorld()->SpawnActor<AActor>(MazeFloorSAND2, GetActorLocation(), GetActorRotation(), spawnParams);
 		break;
+	case 6: //I ramp
+		myFloor = GetWorld()->SpawnActor<AActor>(IRampFloor, GetActorLocation(), GetActorRotation(), spawnParams);
+		if (inverted)			
+			myFloor->SetActorScale3D(FVector(-1.f, -1.f, 1.f));
+		break;
+	case 5: //L ramp
+		if (inverted)
+			myFloor = GetWorld()->SpawnActor<AActor>(LRampFloorInverted, GetActorLocation(), GetActorRotation(), spawnParams);
+		else
+			myFloor = GetWorld()->SpawnActor<AActor>(LRampFloor, GetActorLocation(), GetActorRotation(), spawnParams);
+		break;
 	}
+	//if (inverted) {
+
+
+	//	if (type == 8) { //L pieces need to be rotated 180 degrees
+	//		myFloor->SetActorScale3D(FVector(1.f, 1.f, 1.f));
+	//		myPiece->SetActorScale3D(FVector(1.f, 1.f, 1.f));
+	//		myFloor->SetActorRotation(FRotator(0.f, 180.f, 0.f));
+	//		myPiece->SetActorRotation(FRotator(0.f, 180.f, 0.f));
+	//	}
+	//	else{
+	//		myFloor->SetActorScale3D(FVector(-1.f, -1.f, 1.f));
+	//		myPiece->SetActorScale3D(FVector(-1.f, -1.f, 1.f));
+	//	}
+	//}
 }
 
 bool AMazeNodeMain::DiceRoll(int percentage)
@@ -138,4 +176,9 @@ bool AMazeNodeMain::DiceRoll(int percentage)
 		return false;
 	}
 	return (FMath::RandRange(1, 100 / percentage) == 1 ? true : false);
+}
+
+void AMazeNodeMain::invert()
+{
+	inverted = true;
 }

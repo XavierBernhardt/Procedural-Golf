@@ -23,6 +23,7 @@ protected:
 	virtual void Destroyed() override;
 	int type;
 	int floor;
+	bool inverted;
 	AActor* myPiece;
 	AActor* myFloor;
 
@@ -109,7 +110,27 @@ public:
 	UPROPERTY(EditAnywhere, Category = Cave)
 		TSubclassOf<class AActor> MazeFloorCave;
 
+	//Snake ramps
 
+
+	UPROPERTY(EditAnywhere, Category = Snake)
+		TSubclassOf<class AActor> IRampWall;
+
+	UPROPERTY(EditAnywhere, Category = Snake)
+		TSubclassOf<class AActor> LRampWall;
+
+	UPROPERTY(EditAnywhere, Category = Snake)
+		TSubclassOf<class AActor> IRampFloor;
+
+	UPROPERTY(EditAnywhere, Category = Snake)
+		TSubclassOf<class AActor> LRampFloor;
+
+
+	UPROPERTY(EditAnywhere, Category = Snake)
+		TSubclassOf<class AActor> LRampFloorInverted;
+
+	UPROPERTY(EditAnywhere, Category = Snake)
+		TSubclassOf<class AActor> LRampWallInverted;
 
 	UPROPERTY(EditAnywhere, Category = Room, meta = (ClampMin = "0", ClampMax = "100", UIMin = "0", UIMax = "100"))
 		int ChanceForSandFloorAlt;
@@ -118,6 +139,6 @@ public:
 	void setFloor(int setFloor);
 	void init();
 	bool DiceRoll(int percentage);
-
+	void invert();
 
 };

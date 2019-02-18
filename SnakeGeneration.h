@@ -31,6 +31,7 @@ public:
 	crd checkCrd; //coordinate we want to move to
 	std::vector<crd> crdList; //vector to hold coordinates
 	bool DrawDebugText = false;
+	
 
 	//search through crdlist for a crd
 	bool Exists(crd toFind, std::vector<crd> listToCheck);

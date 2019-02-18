@@ -337,6 +337,9 @@ void AGameModeCPP::SnakeToUnreal()
 {
 	//0 1 2 3 4 5
 	//C I L N T X
+	float curZ = 0.f; //current z;
+	float prevZ = 0.f;
+	int zDirection = 0; //0 = nowhere, 1 = up , -1 = down
 	FActorSpawnParameters spawnParams;
 	spawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 	FRotator rotator = FRotator(0, 0, 0);
@@ -350,7 +353,35 @@ void AGameModeCPP::SnakeToUnreal()
 	for (int i = 0; i < crdList.size(); i++) {
 		realX = crdList[i].x * 2000;
 		realY = crdList[i].y * 2000;
-		spawnLocation = FVector(realX, realY, 0.f);
+
+		prevZ = curZ;
+
+		if (zDirection == 1 && i != crdList.size()) {
+			curZ = curZ + 250;
+			zDirection = 0;
+		}
+		else if (zDirection == -1 && i != crdList.size()) {
+			curZ = curZ - 250;
+			zDirection = 0;
+		}
+		//(Pitch = -14.062500, Yaw = 89.999947, Roll = 0.000000)
+		//(X = 1.040000, Y = 1.000000, Z = 1.040000)
+
+		if (i != 0 && i != crdList.size() && prevZ == curZ) { //If its not the first / final step and the last block wasnt a change of height
+			if (diceRoll(30)) { //10% of the time, look to change the height
+				if (diceRoll(50)) { //half the time move down
+					curZ = curZ - 250; //Move half way down (this will be the ramp block, or try to be)
+					zDirection = -1;
+				}
+				else {				//half the time move up
+					curZ = curZ + 250; //The final z value will be 500
+					zDirection = 1;
+				}
+			}
+		}
+
+
+		spawnLocation = FVector(realX, realY, curZ);
 
 		if (i == 0) { //first will be a C facing up
 			mazeNode = GetWorld()->SpawnActor<AMazeNodeMain>(MazeNodeMain, spawnLocation, FRotator(0, 270, 0), spawnParams);
@@ -425,58 +456,136 @@ void AGameModeCPP::SnakeToUnreal()
 					}
 				break;
 			}*/
+			
+			
+			// Wall 8 = I RAMP
+			// Wall 9 = L RAMP
+			// Floor 5 = I RAMP
+			// Floor 6 = L RAMP
+
+			//0 1 2 3 4 5
+			//C I L N T X 
+
+			//Floor:
+			//0			1		2		3		4		5		6
+			//Grass		Ice		Hole	Cave	Sand	I ramp	L ramp	
+			//FTransform inverted;
+			//inverted.SetScale3D(FVector(1.f, 1.f, -1.f));
+
 			if (crdList[i].d == 0 && crdList[i + 1].d == -1) { //enter south , exit west
 				mazeNode = GetWorld()->SpawnActor<AMazeNodeMain>(MazeNodeMain, spawnLocation, FRotator(0, 180, 0), spawnParams);
-				mazeNode->setType(2);
-				mazeNode->setFloor(0);
+				if (zDirection == 0) {
+					mazeNode->setType(2); //I
+					mazeNode->setFloor(0);
+				}
+				else {
+					mazeNode->setType(8); //I
+					mazeNode->setFloor(5);
+					if (zDirection == -1) //If going down, invert the object
+						mazeNode->invert();
+				}
+
+				//mazeNode->SetActorTransform(inverted);
 				mazeNode->init();
 			}
 			else if (crdList[i].d == 0 && crdList[i + 1].d == 0) { //enter/exit north/sout
 				mazeNode = GetWorld()->SpawnActor<AMazeNodeMain>(MazeNodeMain, spawnLocation, FRotator(0, 90, 0), spawnParams);
-				mazeNode->setType(1);
-				mazeNode->setFloor(0);
+				if (zDirection == 0) {
+					mazeNode->setType(1); //L
+					mazeNode->setFloor(0);
+				}
+				else {
+					mazeNode->setType(9); //L
+					mazeNode->setFloor(6);
+					if (zDirection == 1) //If going down, invert the object
+						mazeNode->invert();
+				}
+				//mazeNode->SetActorTransform(inverted);
 				mazeNode->init();
 			}
 			else if (crdList[i].d == 0 && crdList[i + 1].d == 1) { //enter south , exit east
 				mazeNode = GetWorld()->SpawnActor<AMazeNodeMain>(MazeNodeMain, spawnLocation, FRotator(0, 90, 0), spawnParams);
-				mazeNode->setType(2);
-				mazeNode->setFloor(0);
+				if (zDirection == 0) {
+					mazeNode->setType(2); //I
+					mazeNode->setFloor(0);
+				}
+				else {
+					mazeNode->setType(8); //I
+					mazeNode->setFloor(5);
+					if (zDirection == 1) //If going down, invert the object
+						mazeNode->invert();
+				}
 				mazeNode->init();
 			}
 			else if (crdList[i].d == 1 && crdList[i + 1].d == 0) { //enter west , exit north
 				mazeNode = GetWorld()->SpawnActor<AMazeNodeMain>(MazeNodeMain, spawnLocation, FRotator(0, 270, 0), spawnParams);
-				mazeNode->setType(2);
-				mazeNode->setFloor(0);
+				if (zDirection == 0) {
+					mazeNode->setType(2); //I
+					mazeNode->setFloor(0);
+				}
+				else {
+					mazeNode->setType(8); //I
+					mazeNode->setFloor(5);
+					if (zDirection == -1) //If going down, invert the object
+						mazeNode->invert();
+				}
 				mazeNode->init();
 			}
-			else if (crdList[i].d == 1 && crdList[i + 1].d == 1) { //enter/exit west/east
+			else if (crdList[i].d == 1 && crdList[i + 1].d == 1) { //enter east exit east
 				mazeNode = GetWorld()->SpawnActor<AMazeNodeMain>(MazeNodeMain, spawnLocation, FRotator(0, 0, 0), spawnParams);
-				mazeNode->setType(1);
-				mazeNode->setFloor(0);
+				if (zDirection == 0) {
+					mazeNode->setType(1); //L
+					mazeNode->setFloor(0);
+				}
+				else{
+					mazeNode->setType(9); //L
+					mazeNode->setFloor(6);
+					if (zDirection == -1) //If going down, invert the object
+						mazeNode->invert();
+				}
+	
 				mazeNode->init();
 			}
 			else if (crdList[i].d == -1 && crdList[i + 1].d == 0) { //enter east , exit north
 				mazeNode = GetWorld()->SpawnActor<AMazeNodeMain>(MazeNodeMain, spawnLocation, FRotator(0, 0, 0), spawnParams);
-				mazeNode->setType(2);
-				mazeNode->setFloor(0);
+				if (zDirection == 0) {
+					mazeNode->setType(2); //I
+					mazeNode->setFloor(0);
+				}
+				else {
+					mazeNode->setType(8); //I
+					mazeNode->setFloor(5);
+					if (zDirection == 1) //If going down, invert the object
+						mazeNode->invert();
+				}
+				//mazeNode->SetActorTransform(inverted);
 				mazeNode->init();
 			}
-			else if (crdList[i].d == -1 && crdList[i + 1].d == -1) { //enter east , exit east
+			else if (crdList[i].d == -1 && crdList[i + 1].d == -1) { //enter west , exit west
 				mazeNode = GetWorld()->SpawnActor<AMazeNodeMain>(MazeNodeMain, spawnLocation, FRotator(0, 0, 0), spawnParams);
-				mazeNode->setType(1);
-				mazeNode->setFloor(0);
+				if (zDirection == 0) {
+					mazeNode->setType(1); //L
+					mazeNode->setFloor(0);
+				}
+				else {
+					mazeNode->setType(9); //L
+					mazeNode->setFloor(6);
+					if (zDirection == 1) //If going down, invert the object
+						mazeNode->invert();
+				}
+				//mazeNode->SetActorTransform(inverted);
 				mazeNode->init();
 			}
 			else {
 				mazeNode = GetWorld()->SpawnActor<AMazeNodeMain>(MazeNodeMain, spawnLocation, FRotator(0, 0, 0), spawnParams);
-				mazeNode->setType(5);
+				mazeNode->setType(5); //X
 				mazeNode->setFloor(0);
 				mazeNode->init();
 			}
 			allMazePieces.Add(mazeNode);
 		}
 	}
-	spawnLocation = FVector(realX, realY, 0.f);
+	spawnLocation = FVector(realX, realY, curZ);
 	pieceToAdd = GetWorld()->SpawnActor<AActor>(FlagBP, spawnLocation, rotator, spawnParams); //FlagNoBase for hole
 
 	allMazePieces.Add(pieceToAdd);

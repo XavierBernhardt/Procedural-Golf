@@ -17,6 +17,8 @@ void SnakeGeneration::GenerateSnakeMaze()
 	checkCrd = crd{ 0,0 }; //coordinate we want to move to
 	srand(time(0)); //seed 
 
+
+
 	//mark 0,0 and 0,1 as taken (starting area and up one are taken by default)
 	crd newCoord{ curX, curY }; //first coord is always 0,0
 	crdList.emplace_back(newCoord);
