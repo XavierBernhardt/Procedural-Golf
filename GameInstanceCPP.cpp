@@ -20,6 +20,10 @@ mazeSettings UGameInstanceCPP::getMazeSettings()
 	
 	return mazeSettings{ GImazeWidth, GImazeHeight, GIpathLength, GInoDeadEndsAllowed };
 }
+snakeSettings UGameInstanceCPP::getSnakeSettings()
+{
+	return snakeSettings{ GIsnakeTrackLength, GIsnakeHeightMultiplier , GIsnakeAllowDown ,GIsnakeAllowUp , GIsnakeHeightChance };
+}
 roomSettings UGameInstanceCPP::getRoomSettings()
 {
 	return roomSettings{ GIroomChance, GIturnChance, GIhitSelf, GIturnBack, GIroomPathLength, GIchanceForRock, GIplaceCornerWalls };

@@ -24,6 +24,8 @@ protected:
 	int type;
 	int floor;
 	bool inverted;
+	bool heightChanged;
+	float newHeight;
 	AActor* myPiece;
 	AActor* myFloor;
 
@@ -132,6 +134,18 @@ public:
 	UPROPERTY(EditAnywhere, Category = Snake)
 		TSubclassOf<class AActor> LRampWallInverted;
 
+	UPROPERTY(EditAnywhere, Category = Snake)
+		TSubclassOf<class AActor> IRampInverted;
+
+	UPROPERTY(EditAnywhere, Category = Snake)
+		TSubclassOf<class AActor> IRampNorth;
+
+	UPROPERTY(EditAnywhere, Category = Snake)
+		TSubclassOf<class AActor> IRampNorthInverted;
+
+
+
+
 	UPROPERTY(EditAnywhere, Category = Room, meta = (ClampMin = "0", ClampMax = "100", UIMin = "0", UIMax = "100"))
 		int ChanceForSandFloorAlt;
 
@@ -140,5 +154,5 @@ public:
 	void init();
 	bool DiceRoll(int percentage);
 	void invert();
-
+	void changeHeight(float heightMultiplier);
 };

@@ -89,8 +89,11 @@ void MazeGeneration::depthFirstMaze()
 	startY = col * 2000;
 	endX = 0.f;
 	endY = 0.f;
+	customFlagDistance = pathLength / 2; //since this moves 2 spaces at a time, the flag distance is actually half what users think it is
+	//this is an int division though, so it'll be a bit off (not much to do about it though)
 	if (DrawDebugText)
 		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("StartX = %i  StartY = %i"), startX, startY));
+
 
 	recursiveMaze(row, col);
 	PrintMaze();
@@ -126,8 +129,17 @@ int MazeGeneration::recursiveMaze(int r, int c)
 			if (maze[r - 2][c] != 0) {
 				maze[r - 2][c] = 0;
 				maze[r - 1][c] = 0;
-				endX = r - 2;
-				endY = c;
+
+				if (pathLength == 0) { //if theres no custom distance set, move the flag
+					endX = r - 2;
+					endY = c;
+				}
+				else if (pathLength != 0 && customFlagDistance > 0) {	//if there is a custom flag distance, and theres still tiles to go
+					customFlagDistance--; //reduce the tiles to go
+					endX = r - 2; //move the flag
+					endY = c;
+				}
+					
 				recursiveMaze(r - 2, c);
 			}
 			break;
@@ -139,8 +151,17 @@ int MazeGeneration::recursiveMaze(int r, int c)
 			if (maze[r][c + 2] != 0) {
 				maze[r][c + 2] = 0;
 				maze[r][c + 1] = 0;
-				endX = r;
-				endY = c + 2;
+				if (pathLength == 0) { //if theres no custom distance set, move the flag
+					endX = r;
+					endY = c + 2;
+				}
+				else if (pathLength != 0 && customFlagDistance > 0) {	//if there is a custom flag distance, and theres still tiles to go
+					customFlagDistance--; //reduce the tiles to go
+					endX = r;
+					endY = c + 2;
+				}
+				
+
 				recursiveMaze(r, c + 2);
 			}
 			break;
@@ -152,8 +173,16 @@ int MazeGeneration::recursiveMaze(int r, int c)
 			if (maze[r + 2][c] != 0) {
 				maze[r + 2][c] = 0;
 				maze[r + 1][c] = 0;
-				endX = r + 2;
-				endY = c;
+				if (pathLength == 0) { //if theres no custom distance set, move the flag
+					endX = r + 2;
+					endY = c;
+				}
+				else if (pathLength != 0 && customFlagDistance > 0) {	//if there is a custom flag distance, and theres still tiles to go
+					customFlagDistance--; //reduce the tiles to go
+					endX = r + 2;
+					endY = c;
+				}
+
 				recursiveMaze(r + 2, c);
 			}
 			break;
@@ -165,8 +194,16 @@ int MazeGeneration::recursiveMaze(int r, int c)
 			if (maze[r][c - 2] != 0) {
 				maze[r][c - 2] = 0;
 				maze[r][c - 1] = 0;
-				endX = r;
-				endY = c - 2;
+				if (pathLength == 0) { //if theres no custom distance set, move the flag
+					endX = r;
+					endY = c - 2;
+				}
+				else if (pathLength != 0 && customFlagDistance > 0) {	//if there is a custom flag distance, and theres still tiles to go
+					customFlagDistance--; //reduce the tiles to go
+					endX = r;
+					endY = c - 2;
+				}
+
 				recursiveMaze(r, c - 2);
 			}
 		}

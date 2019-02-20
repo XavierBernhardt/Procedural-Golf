@@ -40,6 +40,13 @@ struct controlSettings {
 	float sensitivityMultiplier;
 	float massMultiplier;
 };
+struct snakeSettings {
+	int trackLength;
+	float heightMultiplier;
+	bool allowDown;
+	bool allowUp;
+	int heightChance;
+};
 
 UCLASS()
 class PROCEDURALGOLFV2_API UGameInstanceCPP : public UGameInstance
@@ -60,7 +67,15 @@ public:
 	////--------SNAKE GEN---------\\\\
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Snake)
-		int GIsnakeTrackLength = 20; //0-100 chance to spawn a room of some kind
+		int GIsnakeTrackLength = 20;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Snake)
+		float GIsnakeHeightMultiplier = 1.f; 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Snake)
+		bool GIsnakeAllowDown;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Snake)
+		bool GIsnakeAllowUp;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Snake)
+		int GIsnakeHeightChance; 
 
 	////--------ROOM GEN---------\\\\
 
@@ -109,10 +124,12 @@ public:
 
 
 	mazeSettings getMazeSettings(); 
+	snakeSettings getSnakeSettings();
 	roomSettings getRoomSettings();
 	caveSettings getCaveSettings();
 	controlSettings getControlSettings();
 
+	float killZ; //if the ball falls lower than this, respawn the ball. Defaults to 0, ball uses -500 from this to ensure its below the map.
 
 };
 

@@ -168,6 +168,12 @@ void AMazeNodeMain::init()
 	//		myPiece->SetActorScale3D(FVector(-1.f, -1.f, 1.f));
 	//	}
 	//}
+
+	if (heightChanged) {
+		FVector oldScale = myFloor->GetActorScale3D();
+		myFloor->SetActorRelativeScale3D(FVector(oldScale.X, oldScale.Y, newHeight));
+		myPiece->SetActorRelativeScale3D(FVector(oldScale.X, oldScale.Y, newHeight));
+	}
 }
 
 bool AMazeNodeMain::DiceRoll(int percentage)
@@ -181,4 +187,10 @@ bool AMazeNodeMain::DiceRoll(int percentage)
 void AMazeNodeMain::invert()
 {
 	inverted = true;
+}
+
+void AMazeNodeMain::changeHeight(float heightMultiplier)
+{
+	heightChanged = true;
+	newHeight = heightMultiplier;
 }

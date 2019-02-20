@@ -25,7 +25,10 @@ protected:
 	int pieceToRotate = 0; //rotation is 0 by default
 	int pieceType;
 	AActor* placeRock(float x, float y); //Places a rock at a location then randomly rotates, scales and positions.
-	int chanceForRock;
+	int chanceForRock, heightChance;
+	float heightMultiplier;
+	bool allowUp, allowDown;
+
 
 	//Arrays/Vectors
 	std::vector<crd> roomList; //vector to hold coordinates of the rooms

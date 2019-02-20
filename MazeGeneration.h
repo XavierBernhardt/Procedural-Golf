@@ -21,7 +21,7 @@ public:
 	bool deadEndHit = false;
 	int row, col;
 	bool noDeadEndsAllowed;
-	
+	int customFlagDistance;
 	//TArray<AActor*> AllMazePieces;
 	std::vector<std::vector<int>> maze;
 	

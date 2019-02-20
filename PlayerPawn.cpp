@@ -50,7 +50,7 @@ APlayerPawn::APlayerPawn()
 
 	realDamping = dampingDefault;
 	JumpImpulse = 3000000.0;
-
+	killZ = -500.f;
 	canShoot = false;
 	rotating = 0;
 	shootDirection = FRotator(0.f,0.f,0.f);
@@ -143,7 +143,10 @@ void APlayerPawn::BeginPlay()
 	UGameInstanceCPP * gameInst = Cast<UGameInstanceCPP>(GetWorld()->GetGameInstance());
 	if (gameInst) { //Try to get the custom values set in the main menu 
 		customControls = gameInst->getControlSettings();
+		killZ = gameInst->killZ - 500;
 		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Game instance found")));
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Kill Z = %f"), killZ));
+
 	}
 	else {
 		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Could not find game instance")));
@@ -263,7 +266,7 @@ void APlayerPawn::Tick(float DeltaTime)
 		}
 	}
 
-	if (GetActorLocation().Z < -500) {
+	if (GetActorLocation().Z < killZ) {
 		SetActorLocation(LastSafeLocation);
 		slowMoving = true;
 		Ball->SetLinearDamping(50.f);

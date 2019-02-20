@@ -97,7 +97,10 @@ void AGameModeCPP::InitGameState()
 			currentMap = 5;
 			if (DrawDebugText)
 				GEngine->AddOnScreenDebugMessage(110, 99.f, FColor::Cyan, TEXT("Current Level: Designed Map"));
-
+			UGameInstanceCPP * gameInst = Cast<UGameInstanceCPP>(GetWorld()->GetGameInstance());
+			if (gameInst) { 
+				gameInst->killZ = 0.f; //reset the kill z to 0
+			}
 			GetWorld()->SpawnActor<AActor>(PlayerPawn, FVector(0.f, 0.f, 10.f), FRotator(0, 0, 0), spawnParams);
 		}
 
@@ -155,6 +158,7 @@ void AGameModeCPP::roomGenBegin()
 		UGameInstanceCPP * gameInst = Cast<UGameInstanceCPP>(GetWorld()->GetGameInstance());
 		if (gameInst) { //Try to get the custom values set in the main menu 
 			roomSet = gameInst->getRoomSettings();
+			gameInst->killZ = 0.f; //reset the kill z to 0
 			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Game instance found")));
 		}
 		else {
@@ -181,6 +185,7 @@ void AGameModeCPP::caveGenBegin()
 		UGameInstanceCPP * gameInst = Cast<UGameInstanceCPP>(GetWorld()->GetGameInstance());
 		if (gameInst) { //Try to get the custom values set in the main menu 
 			caveSet = gameInst->getCaveSettings();
+			gameInst->killZ = 0.f; //reset the kill z to 0
 			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Game instance found")));
 		}
 		else {
@@ -225,6 +230,7 @@ void AGameModeCPP::mazeGenBegin()
 		if (gameInst) { //Try to get the custom values set in the main menu 
 			mazeSet = gameInst->getMazeSettings();
 			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Game instance found")));
+			gameInst->killZ = 0.f; //reset the kill z to 0
 		}
 		else {
 			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Could not find game instance")));
@@ -258,21 +264,27 @@ void AGameModeCPP::snakeGenBegin()
 	mazePiecesAlt1.Add(MazeTAlt1);
 	mazePiecesAlt1.Add(MazeXAlt1);
 
-	int snakeLength = 20;
+	snakeSettings snakeSet = { 15,1,true,false, 33}; //Default settings
+
 	if (currentMap == 0) { //If on the menu
 		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Currently on menu")));
 	}
 	else {
 		UGameInstanceCPP * gameInst = Cast<UGameInstanceCPP>(GetWorld()->GetGameInstance());
 		if (gameInst) { //Try to get the custom values set in the main menu 
-			snakeLength = gameInst->GIsnakeTrackLength;
+			snakeSet = gameInst->getSnakeSettings();
+			gameInst->killZ = 0.f; //reset the kill z to 0
 			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Game instance found")));
 		}
 		else {
 			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Could not find game instance")));
 		}
 	}
-	crdList = snakeGen.initSnakeGen(snakeLength);
+	heightMultiplier = snakeSet.heightMultiplier;
+	allowDown = snakeSet.allowDown;
+	allowUp = snakeSet.allowUp;
+	heightChance = snakeSet.heightChance;
+	crdList = snakeGen.initSnakeGen(snakeSet.trackLength);
 	SnakeToUnreal();
 
 }
@@ -339,6 +351,7 @@ void AGameModeCPP::SnakeToUnreal()
 	//C I L N T X
 	float curZ = 0.f; //current z;
 	float prevZ = 0.f;
+	float lowestZ = curZ;
 	int zDirection = 0; //0 = nowhere, 1 = up , -1 = down
 	FActorSpawnParameters spawnParams;
 	spawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
@@ -350,6 +363,7 @@ void AGameModeCPP::SnakeToUnreal()
 	AMazeNodeMain* 	mazeNode = GetWorld()->SpawnActor<AMazeNodeMain>(MazeNodeMain, spawnLocation, FRotator(0, 0, 0), spawnParams);
 	mazeNode->Destroy(); //got to initialise it for it to compile
 
+
 	for (int i = 0; i < crdList.size(); i++) {
 		realX = crdList[i].x * 2000;
 		realY = crdList[i].y * 2000;
@@ -357,28 +371,49 @@ void AGameModeCPP::SnakeToUnreal()
 		prevZ = curZ;
 
 		if (zDirection == 1 && i != crdList.size()) {
-			curZ = curZ + 250;
+			curZ = curZ + 250 * heightMultiplier;
 			zDirection = 0;
 		}
 		else if (zDirection == -1 && i != crdList.size()) {
-			curZ = curZ - 250;
+			curZ = curZ - 250 * heightMultiplier;
 			zDirection = 0;
+			if (curZ <= lowestZ) { //re adjust the kill height
+				lowestZ = curZ;
+			}
 		}
 		//(Pitch = -14.062500, Yaw = 89.999947, Roll = 0.000000)
 		//(X = 1.040000, Y = 1.000000, Z = 1.040000)
 
-		if (i != 0 && i != crdList.size() && prevZ == curZ) { //If its not the first / final step and the last block wasnt a change of height
-			if (diceRoll(30)) { //10% of the time, look to change the height
-				if (diceRoll(50)) { //half the time move down
-					curZ = curZ - 250; //Move half way down (this will be the ramp block, or try to be)
-					zDirection = -1;
-				}
-				else {				//half the time move up
-					curZ = curZ + 250; //The final z value will be 500
-					zDirection = 1;
+		if (i != 0 && i != crdList.size()-1 && prevZ == curZ) { //If its not the first / final step and the last block wasnt a change of height
+
+			if (allowUp || allowDown) { //if any form of Z movement is allowed
+				if (diceRoll(heightChance)) { //if it rolls a successful chance to z move
+					int newDir = 1; //default to moving up
+				
+					if (allowUp && allowDown) { //If it can move both up and down
+						if (diceRoll(50)) newDir = -1; //half the time move down (otherwise move up)
+					}
+					else if (!allowUp && allowDown) { //If it can only move down
+						newDir = -1; //move down
+					}
+					//Otherwise assume it can only move up, and change nothing
+					//If the chance to move is 0 or it cannot move at all, nothing happens anyway.
+
+					if (newDir == -1) { //move down
+						curZ = curZ - 250 * heightMultiplier; //Move half way down (this will be the ramp block, or try to be)
+						zDirection = -1;
+						if (curZ <= lowestZ) { //re adjust the kill height
+							lowestZ = curZ;
+						}
+					}
+					else if (newDir == 1) { //move up
+						curZ = curZ + 250 * heightMultiplier; //The final z value will be 500 * the height multiplier
+						zDirection = 1;
+					}
 				}
 			}
 		}
+
 
 
 		spawnLocation = FVector(realX, realY, curZ);
@@ -483,6 +518,9 @@ void AGameModeCPP::SnakeToUnreal()
 					mazeNode->setFloor(5);
 					if (zDirection == -1) //If going down, invert the object
 						mazeNode->invert();
+					if (heightMultiplier != 1.f) { //If the map is to have a different height from default, resize the piece to fit
+						mazeNode->changeHeight(heightMultiplier);
+					}
 				}
 
 				//mazeNode->SetActorTransform(inverted);
@@ -499,6 +537,9 @@ void AGameModeCPP::SnakeToUnreal()
 					mazeNode->setFloor(6);
 					if (zDirection == 1) //If going down, invert the object
 						mazeNode->invert();
+					if (heightMultiplier != 1.f) { //If the map is to have a different height from default, resize the piece to fit
+						mazeNode->changeHeight(heightMultiplier);
+					}
 				}
 				//mazeNode->SetActorTransform(inverted);
 				mazeNode->init();
@@ -514,6 +555,9 @@ void AGameModeCPP::SnakeToUnreal()
 					mazeNode->setFloor(5);
 					if (zDirection == 1) //If going down, invert the object
 						mazeNode->invert();
+					if (heightMultiplier != 1.f) { //If the map is to have a different height from default, resize the piece to fit
+						mazeNode->changeHeight(heightMultiplier);
+					}
 				}
 				mazeNode->init();
 			}
@@ -528,6 +572,9 @@ void AGameModeCPP::SnakeToUnreal()
 					mazeNode->setFloor(5);
 					if (zDirection == -1) //If going down, invert the object
 						mazeNode->invert();
+					if (heightMultiplier != 1.f) { //If the map is to have a different height from default, resize the piece to fit
+						mazeNode->changeHeight(heightMultiplier);
+					}
 				}
 				mazeNode->init();
 			}
@@ -542,6 +589,9 @@ void AGameModeCPP::SnakeToUnreal()
 					mazeNode->setFloor(6);
 					if (zDirection == -1) //If going down, invert the object
 						mazeNode->invert();
+					if (heightMultiplier != 1.f) { //If the map is to have a different height from default, resize the piece to fit
+						mazeNode->changeHeight(heightMultiplier);
+					}
 				}
 	
 				mazeNode->init();
@@ -557,6 +607,9 @@ void AGameModeCPP::SnakeToUnreal()
 					mazeNode->setFloor(5);
 					if (zDirection == 1) //If going down, invert the object
 						mazeNode->invert();
+					if (heightMultiplier != 1.f) { //If the map is to have a different height from default, resize the piece to fit
+						mazeNode->changeHeight(heightMultiplier);
+					}
 				}
 				//mazeNode->SetActorTransform(inverted);
 				mazeNode->init();
@@ -572,6 +625,9 @@ void AGameModeCPP::SnakeToUnreal()
 					mazeNode->setFloor(6);
 					if (zDirection == 1) //If going down, invert the object
 						mazeNode->invert();
+					if (heightMultiplier != 1.f) { //If the map is to have a different height from default, resize the piece to fit
+						mazeNode->changeHeight(heightMultiplier);
+					}
 				}
 				//mazeNode->SetActorTransform(inverted);
 				mazeNode->init();
@@ -589,6 +645,12 @@ void AGameModeCPP::SnakeToUnreal()
 	pieceToAdd = GetWorld()->SpawnActor<AActor>(FlagBP, spawnLocation, rotator, spawnParams); //FlagNoBase for hole
 
 	allMazePieces.Add(pieceToAdd);
+
+	UGameInstanceCPP * gameInst = Cast<UGameInstanceCPP>(GetWorld()->GetGameInstance());
+	if (gameInst) { //Try to get the custom values set in the main menu 
+		gameInst->killZ = lowestZ; //adjust the kill height
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Game instance found")));
+	}
 }
 
 void AGameModeCPP::roomToUnreal()

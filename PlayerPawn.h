@@ -201,6 +201,6 @@ public:
 	bool RainbowLines = true;
 
 	float customForceMulti;
-
+	float killZ;
 }
 ;
