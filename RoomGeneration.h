@@ -29,6 +29,7 @@ public:
 	bool placeCornerWalls;//0 for no rocks, 100 for every space to be a rock.
 	int startX, startY;
 
+
 	int HardCodedRotate(int randomDirection);
 	void MoveBorders();
 	void roomGeneration();
@@ -41,5 +42,6 @@ public:
 	std::vector<crd> initRoomGen(int _roomChance, int _turnChance, bool _hitSelf, bool _turnBack, 
 								int _roomPathLength, int _chanceForRock, bool _placeCornerWalls);
 	bool DiceRoll(int percentage);
+
 
 };

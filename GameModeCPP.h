@@ -62,8 +62,11 @@ protected:
 public:
 
 	int startX, startY; //Ball starting location (default x = 0 , y = 0)
+	int endX, endY; //flag location (used for cave gen to find the par)
 	void resetMap();
 	int currentMap; //0 Menu | 1 maze | 2 snake | 3 room | 4 cave | 5 natural
+	float currentPar;
+	TArray<int> designedMapPar = TArray<int>{ 2, 2, 2, 2, 4, 2, 3, 4, 5, 5, 0}; //The pre defined pars for the designed map
 
 protected:
 	////--------////--------Object References---------\\\\---------\\\\

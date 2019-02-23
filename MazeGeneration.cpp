@@ -19,7 +19,7 @@ void MazeGeneration::initMazeGen(int _mazeWidth, int _mazeHeight, int _pathLengt
 	mazeHeight = _mazeHeight;
 	pathLength = _pathLength;
 	noDeadEndsAllowed = _noDeadEndsAllowed;
-
+	par = 0;
 	depthFirstMaze();
 }
 
@@ -96,6 +96,12 @@ void MazeGeneration::depthFirstMaze()
 
 
 	recursiveMaze(row, col);
+	foundFlag = false;
+	par = 0;
+	checkMaze = maze;
+	findPar(row, col);
+	checkMaze.clear();
+
 	PrintMaze();
 }
 
@@ -139,7 +145,7 @@ int MazeGeneration::recursiveMaze(int r, int c)
 					endX = r - 2; //move the flag
 					endY = c;
 				}
-					
+				par = par + 1.f;
 				recursiveMaze(r - 2, c);
 			}
 			break;
@@ -161,7 +167,7 @@ int MazeGeneration::recursiveMaze(int r, int c)
 					endY = c + 2;
 				}
 				
-
+				par = par + 1.f;
 				recursiveMaze(r, c + 2);
 			}
 			break;
@@ -182,7 +188,7 @@ int MazeGeneration::recursiveMaze(int r, int c)
 					endX = r + 2;
 					endY = c;
 				}
-
+				par = par + 1.f;
 				recursiveMaze(r + 2, c);
 			}
 			break;
@@ -203,7 +209,7 @@ int MazeGeneration::recursiveMaze(int r, int c)
 					endX = r;
 					endY = c - 2;
 				}
-
+				par = par + 1.f;
 				recursiveMaze(r, c - 2);
 			}
 		}
@@ -221,6 +227,85 @@ int MazeGeneration::recursiveMaze(int r, int c)
 	//}
 	return 0;
 }
+
+
+int MazeGeneration::findPar(int r, int c)
+{ //This is a modified, shorter version of the code used to create the maze, here being used to solve the maze.
+	if (foundFlag) {
+		return 0;
+	}
+
+	if (r == endX && c == endY) {
+		foundFlag = true;
+		return 0;
+	}
+
+	// 4 random directions
+	int dir[4];
+	for (int i = 0; i < 4; i++) {
+		dir[i] = i;
+	}	//Not shuffling the directions here, just check in order of NESW
+
+
+	// Examine each direction
+	for (int i = 0; i < 4; i++) {
+		switch (dir[i]) {
+		case 0: // Up
+			if (r - 1 < 0 || foundFlag)
+			{
+				//par = par - -1;
+				continue;
+			}
+			if (checkMaze[r - 1][c] == 0) { //if that space is moveable
+				checkMaze[r - 1][c] = 1;
+				par = par + 1;
+				findPar(r - 1, c);
+			}
+			break;
+		case 1: // Right
+			if (c + 1 >= mazeHeight || foundFlag)
+			{
+				//par = par - 1;
+				continue;
+			}
+			if (checkMaze[r][c + 1] == 0) {
+				checkMaze[r][c+1] = 1;
+				par = par + 1;
+
+				findPar(r, c + 1);
+			}
+			break;
+		case 2: // Down
+			if (r + 1 >= mazeWidth || foundFlag)
+			{
+				//par = par - 1;
+				continue;
+			}
+			if (checkMaze[r + 1][c] == 0) {
+				checkMaze[r + 1][c] = 1;
+				par = par + 1;
+
+				findPar(r + 1, c);
+			}
+			break;
+		case 3: // Left
+			if (c - 1 < 0 || foundFlag)
+			{
+				//par = par - 1;
+				continue;
+			}
+			if (checkMaze[r][c - 1] == 0) {
+				checkMaze[r][c - 1] = 1;
+				par = par + 1;
+
+				findPar(r, c - 1);
+			}
+		}
+	//	par = par - 1.f;
+	}
+	return 0;
+}
+
 
 void MazeGeneration::PrintMaze()
 {

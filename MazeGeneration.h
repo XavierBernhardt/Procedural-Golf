@@ -22,12 +22,16 @@ public:
 	int row, col;
 	bool noDeadEndsAllowed;
 	int customFlagDistance;
+	int par;
 	//TArray<AActor*> AllMazePieces;
 	std::vector<std::vector<int>> maze;
+	std::vector<std::vector<int>> checkMaze;
+	bool foundFlag = false;
 	
 	void initMazeGen(int _mazeWidth, int _mazeHeight, int _pathLength, bool _noDeadEndsAllowed);
 	void depthFirstMaze();
 	int recursiveMaze(int r, int c);
+	int findPar(int r, int c);
 	void PrintMaze();
 	void oldDepthFirstMaze(int size);
 

@@ -55,6 +55,8 @@ class PROCEDURALGOLFV2_API UGameInstanceCPP : public UGameInstance
 
 public:
 
+	////--------MAZE GEN---------\\\\
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Maze, meta = (ClampMin = "5", UIMin = "5"))
 		int GImazeWidth;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Maze, meta = (ClampMin = "5", UIMin = "5"))
@@ -121,7 +123,8 @@ public:
 		float GISensitivityMultiplier;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Controls)
 		float GIMassMultiplier;
-
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Controls)
+		int GITotalHoles = 3;
 
 	mazeSettings getMazeSettings(); 
 	snakeSettings getSnakeSettings();
@@ -130,6 +133,9 @@ public:
 	controlSettings getControlSettings();
 
 	float killZ; //if the ball falls lower than this, respawn the ball. Defaults to 0, ball uses -500 from this to ensure its below the map.
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Controls)
+		int GIFirstLoad = 0;
 
 };
 

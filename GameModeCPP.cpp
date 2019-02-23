@@ -152,17 +152,20 @@ void AGameModeCPP::roomGenBegin()
 	roomSettings roomSet = { 10, 30, true, true, 30, 20, true }; //Default settings
 
 	if (currentMap == 0) { //If on the menu
-		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Currently on menu")));
+		if (DrawDebugText)
+			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Currently on menu")));
 	}
 	else {
 		UGameInstanceCPP * gameInst = Cast<UGameInstanceCPP>(GetWorld()->GetGameInstance());
 		if (gameInst) { //Try to get the custom values set in the main menu 
 			roomSet = gameInst->getRoomSettings();
 			gameInst->killZ = 0.f; //reset the kill z to 0
-			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Game instance found")));
+			if (DrawDebugText)
+				GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Game instance found")));
 		}
 		else {
-			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Could not find game instance")));
+			if (DrawDebugText)
+				GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Could not find game instance")));
 		}
 
 	}
@@ -172,6 +175,7 @@ void AGameModeCPP::roomGenBegin()
 			roomSet.turnBack, roomSet.pathLength, chanceForRock, roomSet.placeCorners);
 
 	roomToUnreal();
+	currentPar = roomSet.pathLength / 4; //simple par based on the fact that you should usually travel at least 4 squares in a hit
 }
 
 void AGameModeCPP::caveGenBegin()
@@ -179,17 +183,20 @@ void AGameModeCPP::caveGenBegin()
 
 	caveSettings caveSet = { 25, 25, 40, 3, 3, 0.3 };
 	if (currentMap == 0) { //If on the menu
-		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Currently on menu")));
+		if (DrawDebugText)
+			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Currently on menu")));
 	}
 	else {
 		UGameInstanceCPP * gameInst = Cast<UGameInstanceCPP>(GetWorld()->GetGameInstance());
 		if (gameInst) { //Try to get the custom values set in the main menu 
 			caveSet = gameInst->getCaveSettings();
 			gameInst->killZ = 0.f; //reset the kill z to 0
-			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Game instance found")));
+			if (DrawDebugText)
+				GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Game instance found")));
 		}
 		else {
-			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Could not find game instance")));
+			if (DrawDebugText)
+				GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Could not find game instance")));
 		}
 
 	}
@@ -197,8 +204,9 @@ void AGameModeCPP::caveGenBegin()
 
 	caveMap = caveGen.initCaveGen(caveSet.maxCaveX, caveSet.maxCaveY, caveSet.createChance, 
 		caveSet.initialCycles, caveSet.finalCycles, caveSet.minSizeMulti);
-
+	
 	caveToUnreal();
+	currentPar = ((abs(endX) - abs(startX)) + (abs(endY) - abs(startY))) * 0.0001;
 }
 
 void AGameModeCPP::mazeGenBegin()
@@ -223,17 +231,20 @@ void AGameModeCPP::mazeGenBegin()
 	mazeSettings mazeSet = { 5,5,0,false }; //Default settings
 
 	if (currentMap == 0) { //If on the menu
-		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Currently on menu")));	
+		if (DrawDebugText)
+			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Currently on menu")));
 	}
 	else { 
 		UGameInstanceCPP * gameInst = Cast<UGameInstanceCPP>(GetWorld()->GetGameInstance());
 		if (gameInst) { //Try to get the custom values set in the main menu 
 			mazeSet = gameInst->getMazeSettings();
-			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Game instance found")));
+			if (DrawDebugText)
+				GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Game instance found")));
 			gameInst->killZ = 0.f; //reset the kill z to 0
 		}
 		else {
-			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Could not find game instance")));
+			if (DrawDebugText)
+				GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Could not find game instance")));
 		}
 
 	}
@@ -243,6 +254,7 @@ void AGameModeCPP::mazeGenBegin()
 
 	startX = mazeGen.startX;
 	startY = mazeGen.startY;
+	currentPar = mazeGen.par / 3; // set the par to the solution path / 3 (its okay that this is int / 3, its just a rough value)
 }
 
 void AGameModeCPP::snakeGenBegin()
@@ -267,17 +279,20 @@ void AGameModeCPP::snakeGenBegin()
 	snakeSettings snakeSet = { 15,1,true,false, 33}; //Default settings
 
 	if (currentMap == 0) { //If on the menu
-		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Currently on menu")));
+		if (DrawDebugText)
+			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Currently on menu")));
 	}
 	else {
 		UGameInstanceCPP * gameInst = Cast<UGameInstanceCPP>(GetWorld()->GetGameInstance());
 		if (gameInst) { //Try to get the custom values set in the main menu 
 			snakeSet = gameInst->getSnakeSettings();
 			gameInst->killZ = 0.f; //reset the kill z to 0
-			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Game instance found")));
+			if (DrawDebugText)
+				GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Game instance found")));
 		}
 		else {
-			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Could not find game instance")));
+			if (DrawDebugText)
+				GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Could not find game instance")));
 		}
 	}
 	heightMultiplier = snakeSet.heightMultiplier;
@@ -362,7 +377,7 @@ void AGameModeCPP::SnakeToUnreal()
 	AActor* pieceToAdd;
 	AMazeNodeMain* 	mazeNode = GetWorld()->SpawnActor<AMazeNodeMain>(MazeNodeMain, spawnLocation, FRotator(0, 0, 0), spawnParams);
 	mazeNode->Destroy(); //got to initialise it for it to compile
-
+	currentPar = 0; //start to create a new par for this map
 
 	for (int i = 0; i < crdList.size(); i++) {
 		realX = crdList[i].x * 2000;
@@ -424,6 +439,7 @@ void AGameModeCPP::SnakeToUnreal()
 			mazeNode->setFloor(0);
 			mazeNode->init();
 			allMazePieces.Add(mazeNode);
+			currentPar = currentPar + 0.33f;
 		}
 		else if (i == crdList.size() - 1) { //last will be a C facing backwards
 			switch (crdList[i].d) {
@@ -447,6 +463,7 @@ void AGameModeCPP::SnakeToUnreal()
 				break;
 			}
 			allMazePieces.Add(mazeNode);
+			currentPar = currentPar + 0.33f;
 		}
 		else {
 			/*
@@ -510,11 +527,11 @@ void AGameModeCPP::SnakeToUnreal()
 			if (crdList[i].d == 0 && crdList[i + 1].d == -1) { //enter south , exit west
 				mazeNode = GetWorld()->SpawnActor<AMazeNodeMain>(MazeNodeMain, spawnLocation, FRotator(0, 180, 0), spawnParams);
 				if (zDirection == 0) {
-					mazeNode->setType(2); //I
+					mazeNode->setType(2); //L
 					mazeNode->setFloor(0);
 				}
 				else {
-					mazeNode->setType(8); //I
+					mazeNode->setType(8); //L
 					mazeNode->setFloor(5);
 					if (zDirection == -1) //If going down, invert the object
 						mazeNode->invert();
@@ -522,6 +539,7 @@ void AGameModeCPP::SnakeToUnreal()
 						mazeNode->changeHeight(heightMultiplier);
 					}
 				}
+				currentPar = currentPar + 1.f;
 
 				//mazeNode->SetActorTransform(inverted);
 				mazeNode->init();
@@ -529,11 +547,11 @@ void AGameModeCPP::SnakeToUnreal()
 			else if (crdList[i].d == 0 && crdList[i + 1].d == 0) { //enter/exit north/sout
 				mazeNode = GetWorld()->SpawnActor<AMazeNodeMain>(MazeNodeMain, spawnLocation, FRotator(0, 90, 0), spawnParams);
 				if (zDirection == 0) {
-					mazeNode->setType(1); //L
+					mazeNode->setType(1); //I
 					mazeNode->setFloor(0);
 				}
 				else {
-					mazeNode->setType(9); //L
+					mazeNode->setType(9); //I
 					mazeNode->setFloor(6);
 					if (zDirection == 1) //If going down, invert the object
 						mazeNode->invert();
@@ -543,15 +561,17 @@ void AGameModeCPP::SnakeToUnreal()
 				}
 				//mazeNode->SetActorTransform(inverted);
 				mazeNode->init();
+				currentPar = currentPar + 0.33f;
+
 			}
 			else if (crdList[i].d == 0 && crdList[i + 1].d == 1) { //enter south , exit east
 				mazeNode = GetWorld()->SpawnActor<AMazeNodeMain>(MazeNodeMain, spawnLocation, FRotator(0, 90, 0), spawnParams);
 				if (zDirection == 0) {
-					mazeNode->setType(2); //I
+					mazeNode->setType(2); //L
 					mazeNode->setFloor(0);
 				}
 				else {
-					mazeNode->setType(8); //I
+					mazeNode->setType(8); //L
 					mazeNode->setFloor(5);
 					if (zDirection == 1) //If going down, invert the object
 						mazeNode->invert();
@@ -559,16 +579,17 @@ void AGameModeCPP::SnakeToUnreal()
 						mazeNode->changeHeight(heightMultiplier);
 					}
 				}
+				currentPar = currentPar + 1.f;
 				mazeNode->init();
 			}
 			else if (crdList[i].d == 1 && crdList[i + 1].d == 0) { //enter west , exit north
 				mazeNode = GetWorld()->SpawnActor<AMazeNodeMain>(MazeNodeMain, spawnLocation, FRotator(0, 270, 0), spawnParams);
 				if (zDirection == 0) {
-					mazeNode->setType(2); //I
+					mazeNode->setType(2); //L
 					mazeNode->setFloor(0);
 				}
 				else {
-					mazeNode->setType(8); //I
+					mazeNode->setType(8); //L
 					mazeNode->setFloor(5);
 					if (zDirection == -1) //If going down, invert the object
 						mazeNode->invert();
@@ -577,15 +598,17 @@ void AGameModeCPP::SnakeToUnreal()
 					}
 				}
 				mazeNode->init();
+				currentPar = currentPar + 1.f;
+
 			}
 			else if (crdList[i].d == 1 && crdList[i + 1].d == 1) { //enter east exit east
 				mazeNode = GetWorld()->SpawnActor<AMazeNodeMain>(MazeNodeMain, spawnLocation, FRotator(0, 0, 0), spawnParams);
 				if (zDirection == 0) {
-					mazeNode->setType(1); //L
+					mazeNode->setType(1); //I
 					mazeNode->setFloor(0);
 				}
 				else{
-					mazeNode->setType(9); //L
+					mazeNode->setType(9); //I
 					mazeNode->setFloor(6);
 					if (zDirection == -1) //If going down, invert the object
 						mazeNode->invert();
@@ -593,17 +616,19 @@ void AGameModeCPP::SnakeToUnreal()
 						mazeNode->changeHeight(heightMultiplier);
 					}
 				}
+				currentPar = currentPar + 0.33f;
+
 	
 				mazeNode->init();
 			}
 			else if (crdList[i].d == -1 && crdList[i + 1].d == 0) { //enter east , exit north
 				mazeNode = GetWorld()->SpawnActor<AMazeNodeMain>(MazeNodeMain, spawnLocation, FRotator(0, 0, 0), spawnParams);
 				if (zDirection == 0) {
-					mazeNode->setType(2); //I
+					mazeNode->setType(2); //L
 					mazeNode->setFloor(0);
 				}
 				else {
-					mazeNode->setType(8); //I
+					mazeNode->setType(8); //L
 					mazeNode->setFloor(5);
 					if (zDirection == 1) //If going down, invert the object
 						mazeNode->invert();
@@ -612,16 +637,17 @@ void AGameModeCPP::SnakeToUnreal()
 					}
 				}
 				//mazeNode->SetActorTransform(inverted);
+				currentPar = currentPar + 1.f;
 				mazeNode->init();
 			}
 			else if (crdList[i].d == -1 && crdList[i + 1].d == -1) { //enter west , exit west
 				mazeNode = GetWorld()->SpawnActor<AMazeNodeMain>(MazeNodeMain, spawnLocation, FRotator(0, 0, 0), spawnParams);
 				if (zDirection == 0) {
-					mazeNode->setType(1); //L
+					mazeNode->setType(1); //I
 					mazeNode->setFloor(0);
 				}
 				else {
-					mazeNode->setType(9); //L
+					mazeNode->setType(9); //I
 					mazeNode->setFloor(6);
 					if (zDirection == 1) //If going down, invert the object
 						mazeNode->invert();
@@ -630,12 +656,14 @@ void AGameModeCPP::SnakeToUnreal()
 					}
 				}
 				//mazeNode->SetActorTransform(inverted);
+				currentPar = currentPar + 0.33f;
 				mazeNode->init();
 			}
 			else {
 				mazeNode = GetWorld()->SpawnActor<AMazeNodeMain>(MazeNodeMain, spawnLocation, FRotator(0, 0, 0), spawnParams);
 				mazeNode->setType(5); //X
 				mazeNode->setFloor(0);
+				currentPar = currentPar + 1.f;
 				mazeNode->init();
 			}
 			allMazePieces.Add(mazeNode);
@@ -645,11 +673,12 @@ void AGameModeCPP::SnakeToUnreal()
 	pieceToAdd = GetWorld()->SpawnActor<AActor>(FlagBP, spawnLocation, rotator, spawnParams); //FlagNoBase for hole
 
 	allMazePieces.Add(pieceToAdd);
-
+	currentPar = FMath::RoundToInt(currentPar);
 	UGameInstanceCPP * gameInst = Cast<UGameInstanceCPP>(GetWorld()->GetGameInstance());
 	if (gameInst) { //Try to get the custom values set in the main menu 
 		gameInst->killZ = lowestZ; //adjust the kill height
-		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Game instance found")));
+		if (DrawDebugText)
+			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Game instance found")));
 	}
 }
 
@@ -745,6 +774,8 @@ void AGameModeCPP::caveToUnreal()
 			if (caveMap[x][y].type == 3) { //Flag
 				pieceToAdd = GetWorld()->SpawnActor<AActor>(FlagBP, spawnLocation, rotator, spawnParams); //FlagNoBase for hole
 				allMazePieces.Add(pieceToAdd); //Add the flag
+				endX = realX;
+				endY = realY;
 			}
 			else if (caveMap[x][y].type == 2) { //Player Spawn
 				startX = realX;

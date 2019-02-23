@@ -15,7 +15,6 @@
 AGameHUD::AGameHUD() {
 	static ConstructorHelpers::FObjectFinder<UFont> Font(TEXT("/Engine/EngineFonts/RobotoDistanceField"));
 	HUDFont = Font.Object;
-
 }
 
 
@@ -167,11 +166,19 @@ void AGameHUD::DrawHUD()
 
 			}
 
-			FString ShotsTakenString = FString(TEXT("Current Hole: "));
-			ShotsTakenString.Append(FString::FormatAsNumber(PlayerPawn->CurrentHole + 1));
+			FString ShotsTakenString = FString(TEXT("Current Score: "));
+			ShotsTakenString.Append(FString::FormatAsNumber(PlayerPawn->score));
 			ShotsTakenString.Append(FString(TEXT("\nShots Taken: ")));
 			ShotsTakenString.Append(FString::FormatAsNumber(PlayerPawn->shotsTaken));
 
+
+
+			FString MapInfoString = FString(TEXT("Total Holes: "));
+			MapInfoString.Append(FString::FormatAsNumber(PlayerPawn->totalHoles));
+			MapInfoString.Append(FString(TEXT   ("   \nHole Par: ")));
+			MapInfoString.Append(FString::FormatAsNumber(PlayerPawn->holePar));
+			MapInfoString.Append (FString(TEXT  ("\nCurrent Hole: ")));
+			MapInfoString.Append(FString::FormatAsNumber(PlayerPawn->CurrentHole + 1));
 
 			FCanvasTextItem ForceTextItem(FVector2D(hx * 36, hy * 36), FText::FromString(ShotsTakenString), HUDFont, FLinearColor::White);
 			ForceTextItem.Scale = ScaleVec * 1;
@@ -180,14 +187,42 @@ void AGameHUD::DrawHUD()
 			ForceTextItem.EnableShadow(FColor::Black, (FVector2D(1.f, 1.f)));
 			Canvas->DrawItem(ForceTextItem);
 
+
+			FCanvasTextItem MapInfoItem(FVector2D(Canvas->SizeX * 0.80, hy * 36), FText::FromString(MapInfoString), HUDFont, FLinearColor::White);
+			MapInfoItem.Scale = ScaleVec * 1;
+			MapInfoItem.bOutlined = true;
+			MapInfoItem.OutlineColor = FColor::Black;
+			MapInfoItem.EnableShadow(FColor::Black, (FVector2D(1.f, 1.f)));
+			Canvas->DrawItem(MapInfoItem);
+
 			if (PlayerPawn->DrawFlagHitText) {
 
-				FString FlagHitString = FString(TEXT("Goal Reached! \nShots Taken: "));
-				FlagHitString.Append(FString::FormatAsNumber(PlayerPawn->shotsTaken));
+				//FString FlagHitString = FString(TEXT("Goal Reached! \nShots Taken: "));
+				//FlagHitString.Append(FString::FormatAsNumber(PlayerPawn->shotsTaken));
 
-				FCanvasTextItem FlagHitText(FVector2D(hx * 640.f + 180, hy * 180), FText::FromString(FlagHitString), HUDFont, FLinearColor::Yellow);
-				FlagHitText.Scale = ScaleVec * 1.8;
+
+
+
+				FString FlagHitString = FString(TEXT("Goal Reached!"));
+				if (PlayerPawn->shotsTaken == 1) {
+					FlagHitString = FString(TEXT("Hole in One!"));
+				}
+				if (PlayerPawn->hitTotalHoles) {
+					FlagHitString = FString(TEXT("FINAL HOLE REACHED!\nYour Score: "));
+					FlagHitString.Append(FString::FormatAsNumber(PlayerPawn->score));
+				}
+
+
+				//FCanvasTextItem FlagHitText(FVector2D(hx * 640.f + 180, hy * 180), FText::FromString(FlagHitString), HUDFont, FLinearColor::Yellow);
+				FCanvasTextItem FlagHitText(FVector2D((Canvas->SizeX * 0.5), hy * 180), FText::FromString(FlagHitString), HUDFont, FLinearColor::Yellow);
+
+				if (PlayerPawn->hitTotalHoles) {
+					FlagHitText = FCanvasTextItem(FVector2D((Canvas->SizeX * 0.65), hy * 180), FText::FromString(FlagHitString), HUDFont, FLinearColor::Yellow);
+				}
+
+				FlagHitText.Scale = ScaleVec * 2.5;
 				FlagHitText.bCentreX = true;
+				FlagHitText.bCentreY = true;
 				Canvas->bCenterX = true;
 				FlagHitText.bOutlined = true;
 				FlagHitText.OutlineColor = FColor::Black;

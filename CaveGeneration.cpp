@@ -162,16 +162,19 @@ vector<vector<node>> CaveGeneration::generatePlayerAndFlag(vector<vector<node>> 
 
 	//Attempt to generate top left start / bottom right end ----------
 
-	bool foundLand = false;
+	int moverX = FMath::DivideAndRoundUp(maxCaveX, 20);
+	int moverY = FMath::DivideAndRoundUp(maxCaveY, 20);
+
+	bool foundLand = false; 
 	while (!foundLand) {
-		if ((coord1.start.x + maxCaveX * 0.05 >= maxCaveX) || (coord1.start.y + maxCaveY * 0.05 >= maxCaveY)) { //Will the move go out of bounds?
+		if ((coord1.start.x + moverX >= maxCaveX) || (coord1.start.y + moverY >= maxCaveY)) { //Will the move go out of bounds?
 			coord1.start.x = cavernList.at(0).centre.x; //Set the player start to the cave centre (which must be a floor)
 			coord1.start.y = cavernList.at(0).centre.y;
 			foundLand = true;
 		}
 		else { //Will it move within bounds?
-			coord1.start.x = (coord1.start.x + maxCaveX * 0.05); //Move 5% to the right
-			coord1.start.y = (coord1.start.y + maxCaveY * 0.05); //Move 5% up
+			coord1.start.x = (coord1.start.x + moverX); //Move 5% to the right
+			coord1.start.y = (coord1.start.y + moverY); //Move 5% up
 			if (map[coord1.start.x][coord1.start.y].type == 0) { //Have we hit land yet? (float to int conversion here to keep it on the grid)
 				foundLand = true; //End the loop
 			}
@@ -180,14 +183,14 @@ vector<vector<node>> CaveGeneration::generatePlayerAndFlag(vector<vector<node>> 
 
 	foundLand = false;
 	while (!foundLand) {
-		if ((coord1.flag.x - maxCaveX * 0.05 <= 0) || (coord1.flag.y - maxCaveY * 0.05 <= 0)) { //Will the move go out of bounds?
+		if ((coord1.flag.x - moverX <= 0) || (coord1.flag.y - moverY <= 0)) { //Will the move go out of bounds?
 			coord1.flag.x = cavernList.at(0).centre.x; //Set the flag to the cave centre (which must be a floor)
 			coord1.flag.y = cavernList.at(0).centre.y;
 			foundLand = true;
 		}
 		else { //Will it move within bounds?
-			coord1.flag.x = (coord1.flag.x - maxCaveX * 0.05); //Move 5% to the left
-			coord1.flag.y = (coord1.flag.y - maxCaveY * 0.05); //Move 5% down
+			coord1.flag.x = (coord1.flag.x - moverX); //Move 5% to the left
+			coord1.flag.y = (coord1.flag.y - moverY); //Move 5% down
 			if (map[coord1.flag.x][coord1.flag.y].type == 0) { //Have we hit land yet? (float to int conversion here to keep it on the grid)
 				foundLand = true; //End the loop
 			}
@@ -230,7 +233,7 @@ vector<vector<node>> CaveGeneration::generatePlayerAndFlag(vector<vector<node>> 
 		}
 	}
 
-	coord2.length = (coord2.start.x - coord2.flag.x) + (coord2.flag.y - coord2.start.y);
+	coord2.length = (coord2.flag.x - coord2.start.x) + (coord2.flag.y - coord2.start.y);
 
 	if (coord1.length > coord2.length) {
 		map[coord1.start.x][coord1.start.y].type = 2; //Set those positions in the real map to be start (2) and end (3)

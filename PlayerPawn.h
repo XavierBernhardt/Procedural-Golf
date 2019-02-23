@@ -194,7 +194,7 @@ public:
 	void ResetGamePressed();
 	bool IsItNewLevel = false;
 
-	bool DrawDebugText = true;
+	bool DrawDebugText = false;
 	bool DrawFlagHitText = false;
 
 	FVector LastSafeLocation;
@@ -202,5 +202,9 @@ public:
 
 	float customForceMulti;
 	float killZ;
+	int holePar;
+	float score; //players score for the current level
+	int totalHoles;
+	bool hitTotalHoles;
 }
 ;

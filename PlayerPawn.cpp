@@ -68,6 +68,7 @@ APlayerPawn::APlayerPawn()
 	BaseZoomRate = 500.f;
 	canSetShoot = false;
 	CurrentHole = 0;
+	score = 0;
 	//Makes a static mesh for the ball
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> BallMesh(TEXT("/Game/Meshes/BallStaticMesh.BallStaticMesh"));
 	Ball = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Ball0"));
@@ -84,6 +85,7 @@ APlayerPawn::APlayerPawn()
 	//GetRootComponent()->SetHiddenInGame(true);
 	RootComponent = Ball;
 	customForceMulti = 3.5;
+	hitTotalHoles = false;
 	//Makes a static mesh for the force visualiser (cylinder)
 	//static ConstructorHelpers::FObjectFinder<UStaticMesh> CylMesh(TEXT("/Game/Meshes/ForceVisualiserMesh.ForceVisualiserMesh"));
 	//Cyl = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Cyl0"));
@@ -139,17 +141,21 @@ void APlayerPawn::BeginPlay()
 	Super::BeginPlay();
 
 	controlSettings customControls = { 1.f, 3.f, 1.f, 1.f, 1.f };
-
+	totalHoles = 3;
 	UGameInstanceCPP * gameInst = Cast<UGameInstanceCPP>(GetWorld()->GetGameInstance());
 	if (gameInst) { //Try to get the custom values set in the main menu 
 		customControls = gameInst->getControlSettings();
-		killZ = gameInst->killZ - 500;
-		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Game instance found")));
+		killZ = gameInst->killZ - 1000;
+		if (DrawDebugText) {
+			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Game instance found")));
+		}
 		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Kill Z = %f"), killZ));
 
+		totalHoles = gameInst->GITotalHoles;
 	}
 	else {
-		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Could not find game instance")));
+		if (DrawDebugText)
+			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Could not find game instance")));
 	}
 
 	realDamping = dampingDefault * customControls.dampingMultiplier;
@@ -489,20 +495,28 @@ void APlayerPawn::canSetShootMethod()
 }
 void APlayerPawn::RespawnPlayer()
 {
+	if (hitTotalHoles) {
+		ResetGamePressed();
+	}
 	AGameModeCPP * GameModeCPP = Cast<AGameModeCPP>(UGameplayStatics::GetGameMode(GetWorld()));
 	DrawFlagHitText = false;
-	shotsTaken = 0;
 	if (GameModeCPP != nullptr) {
 		if (DrawDebugText)
-		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Player: StartX = %i  StartY = %i"), GameModeCPP->startX, GameModeCPP->startY));
+			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Player: StartX = %i  StartY = %i"), GameModeCPP->startX, GameModeCPP->startY));
 		if (IsItNewLevel) {
+			shotsTaken = 0;
 			GameModeCPP->resetMap();
 			CurrentHole++;
 			IsItNewLevel = false;
 		}
-		if (GameModeCPP->currentMap != 5) //If the level isn't the designed map
-			SetNextFlag(FVector(GameModeCPP->startX , GameModeCPP->startY , 10.f));
+
+
+		if (GameModeCPP->currentMap != 5) {//If the level isn't the designed map
+			SetNextFlag(FVector(GameModeCPP->startX, GameModeCPP->startY, 10.f));
+			holePar = GameModeCPP->currentPar;
+		}
 		else {
+			holePar = GameModeCPP->designedMapPar[CurrentHole]; //get the built in par
 			switch (CurrentHole) {
 			case 1:
 				SetNextFlag(FVector(10000.f, 0.f, 10.f));
@@ -533,7 +547,7 @@ void APlayerPawn::RespawnPlayer()
 				break;
 			case 10:
 				GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, FString::Printf(TEXT("Final hole reached.")));
-				RestartPressed();
+				ResetGamePressed();
 				break;
 			}
 		}
@@ -610,13 +624,23 @@ void APlayerPawn::OnOverlap(UPrimitiveComponent * HitComp, AActor * OtherActor, 
 			
 			Ball->AddImpulse(-impulse);*/
 			//SetActorLocation(Cast<AFlagActor>(OtherActor)->GetActorLocation());
-			
+
+			AGameModeCPP * GameModeCPP = Cast<AGameModeCPP>(UGameplayStatics::GetGameMode(GetWorld()));
+			if (GameModeCPP != nullptr) {
+				score = score + (shotsTaken - GameModeCPP->currentPar);
+			}
 			DrawFlagHitText = true;
 			touchedFlag = true;
 			slowMoving = true;
 			canShoot = false;
 			IsItNewLevel = true;
-			GetWorld()->GetTimerManager().SetTimer(flagTimer, this, &APlayerPawn::RespawnPlayer, 2.0f, false, 2.0f);
+			if (CurrentHole + 1 == totalHoles) {
+				hitTotalHoles = true;
+				GetWorld()->GetTimerManager().SetTimer(flagTimer, this, &APlayerPawn::RespawnPlayer, 4.0, false, 4.0);
+			}
+			else {
+				GetWorld()->GetTimerManager().SetTimer(flagTimer, this, &APlayerPawn::RespawnPlayer, 2.0f, false, 2.0f);
+			}
 		}
 	}
 
