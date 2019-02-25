@@ -634,23 +634,23 @@ vector<vector<node>> CaveGeneration::cycleMap(vector<vector<node>> oldMap, int m
 }
 
 void CaveGeneration::printMap(vector<vector<node>> map, int style) { //Print the map
-	std::cout << "Printing map of width " << map.size() << " by height " << map[0].size() << "\n";
+	//std::cout << "Printing map of width " << map.size() << " by height " << map[0].size() << "\n";
 
-	for (auto x = 0; x < map.size(); x++) { //Loop through horizontal
-		for (auto y = 0; y < map[0].size(); y++) { //Loop through vertical
-			if (style == 0) { //Based on each cell based on its type
-				if (map[x][y].type == 0) { std::cout << "  "; } //Floor
-				else if (map[x][y].type == 1) { std::cout << "# "; } //Wall
-				else if (map[x][y].type == 2) { std::cout << "S "; } //Start
-				else if (map[x][y].type == 3) { std::cout << "F "; } //Flag
+	//for (auto x = 0; x < map.size(); x++) { //Loop through horizontal
+	//	for (auto y = 0; y < map[0].size(); y++) { //Loop through vertical
+	//		if (style == 0) { //Based on each cell based on its type
+	//			if (map[x][y].type == 0) { std::cout << "  "; } //Floor
+	//			else if (map[x][y].type == 1) { std::cout << "# "; } //Wall
+	//			else if (map[x][y].type == 2) { std::cout << "S "; } //Start
+	//			else if (map[x][y].type == 3) { std::cout << "F "; } //Flag
 
-			}
-			else if (style == 1) { //Print out each cell based on its group
-				std::cout << map[x][y].group << " ";
-			}
-		}
-		std::cout << "\n"; //New line for new row
-	}
+	//		}
+	//		else if (style == 1) { //Print out each cell based on its group
+	//			std::cout << map[x][y].group << " ";
+	//		}
+	//	}
+	//	std::cout << "\n"; //New line for new row
+	//}
 }
 
 int CaveGeneration::nearbyWalls(vector<vector<node>> map, int x, int y)

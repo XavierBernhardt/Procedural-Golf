@@ -152,6 +152,13 @@ void APlayerPawn::BeginPlay()
 		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, FString::Printf(TEXT("Kill Z = %f"), killZ));
 
 		totalHoles = gameInst->GITotalHoles;
+
+		AGameModeCPP * GameModeCPP = Cast<AGameModeCPP>(UGameplayStatics::GetGameMode(GetWorld()));
+		if (GameModeCPP != nullptr) {
+			if (GameModeCPP->currentMap == 5) {
+				totalHoles = 10;
+			}
+		}
 	}
 	else {
 		if (DrawDebugText)
@@ -230,7 +237,9 @@ void APlayerPawn::Tick(float DeltaTime)
 			FColor newCol = linCol.ToFColor(true);
 		//}
 
-		DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation() + forwards, newCol , false, 0.03f, 0, 12.333); 		
+		//DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation() + forwards, newCol , false, 0.03f, 0, 12.333); 		
+			GetWorld()->LineBatcher->DrawLine(GetActorLocation(), GetActorLocation() + forwards, newCol, SDPG_MAX, 12.33, 0.03f);
+		
 	}
 	//else
 		//DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation() + forwards, FColor(255, 0, 0), false, 0.01f, 0, 12.333);
@@ -634,9 +643,9 @@ void APlayerPawn::OnOverlap(UPrimitiveComponent * HitComp, AActor * OtherActor, 
 			slowMoving = true;
 			canShoot = false;
 			IsItNewLevel = true;
-			if (CurrentHole + 1 == totalHoles) {
+			if (CurrentHole + 1 == totalHoles){// && GameModeCPP->currentMap != 5) {
 				hitTotalHoles = true;
-				GetWorld()->GetTimerManager().SetTimer(flagTimer, this, &APlayerPawn::RespawnPlayer, 4.0, false, 4.0);
+				GetWorld()->GetTimerManager().SetTimer(flagTimer, this, &APlayerPawn::RespawnPlayer, 4.0f, false, 4.0f);
 			}
 			else {
 				GetWorld()->GetTimerManager().SetTimer(flagTimer, this, &APlayerPawn::RespawnPlayer, 2.0f, false, 2.0f);

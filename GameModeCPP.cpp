@@ -346,6 +346,7 @@ void AGameModeCPP::mazeToUnreal()
 			if (i == mazeGen.endX && j == mazeGen.endY) {
 				spawnLocation = FVector(realX, realY, 5.f);
 				pieceToAdd = GetWorld()->SpawnActor<AActor>(FlagBP, spawnLocation, rotator, spawnParams);
+				
 				allMazePieces.Add(pieceToAdd);
 			}
 
